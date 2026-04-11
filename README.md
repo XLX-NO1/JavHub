@@ -22,8 +22,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/YOUR_USERNAME/avdownloader.git
-cd avdownloader
+git clone https://github.com/Kongmei-ovo/JavHub.git
+cd JavHub
 
 # 配置
 cp config.yaml.example config.yaml
@@ -152,6 +152,15 @@ npm run dev
    - `DOCKER_USERNAME`
    - `DOCKER_TOKEN`
 3. Push 代码触发构建
+
+## 免责声明
+
+本项目仅供技术学习与个人研究使用。
+
+- 本项目**不提供**任何影片数据库，不存储、传播任何受版权保护的内容
+- 本项目仅作为元数据管理工具，数据来源为第三方公开 API（JavInfoApi）
+- 使用本项目所产生的一切行为，均由使用者自行承担全部责任
+- 请勿将本项目用于任何商业盈利目的
 
 ## License
 
