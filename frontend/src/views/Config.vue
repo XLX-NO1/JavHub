@@ -134,18 +134,19 @@
           </svg>
           <h2>主题</h2>
         </div>
-        <div class="theme-grid">
-          <button
-            v-for="(theme, key) in themes"
-            :key="key"
-            class="theme-btn"
-            :class="{ active: currentTheme === key }"
-            @click="switchTheme(key)"
-          >
-            <span class="theme-icon">{{ theme.icon }}</span>
-            <span class="theme-label">{{ theme.label }}</span>
-            <span class="theme-dot" :style="{ background: theme.vars['--accent'] }"></span>
-          </button>
+        <div class="form-group">
+          <div class="theme-select-wrap">
+            <select class="palette-select" v-model="currentTheme" @change="switchTheme(currentTheme)">
+              <option
+                v-for="(theme, key) in themes"
+                :key="key"
+                :value="key"
+              >
+                {{ theme.icon }} {{ theme.label }}
+              </option>
+            </select>
+            <div class="theme-accent-bar" :style="{ background: themes[currentTheme]?.vars['--accent'] }"></div>
+          </div>
         </div>
       </div>
 
@@ -606,61 +607,49 @@ export default {
 .settings-actions { padding-top: 8px; }
 .settings-actions .btn { width: 100%; justify-content: center; padding: 12px; font-size: 15px; }
 
-/* 主题网格 */
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-}
-
-.theme-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 14px 10px;
-  background: var(--bg-primary);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--text-secondary);
-  font-size: 12px;
+/* 主题下拉 */
+.theme-select-wrap {
   position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
 }
 
-.theme-btn:hover {
-  border-color: var(--accent);
+.theme-select-wrap select {
+  width: 100%;
+  padding: 10px 40px 10px 14px;
+  background: var(--bg-primary);
+  border: none;
   color: var(--text-primary);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card);
+  font-size: 14px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.theme-btn.active {
+.theme-select-wrap select:focus {
+  outline: none;
   border-color: var(--accent);
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-.theme-icon {
-  font-size: 22px;
-  line-height: 1;
-}
-
-.theme-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.theme-dot {
+.theme-select-wrap::after {
+  content: '';
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--text-muted);
+  pointer-events: none;
+}
+
+.theme-accent-bar {
+  height: 3px;
+  width: 100%;
+  transition: background 0.3s ease;
 }
 </style>
