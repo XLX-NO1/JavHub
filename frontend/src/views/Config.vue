@@ -183,15 +183,39 @@
           </div>
         </template>
 
-        <!-- 金色传说说明 -->
+        <!-- 金色传说说明 + 颜色自定义 -->
         <div v-if="bubbleCfg.colorMode === 'legendary'" class="legendary-hint">
-          <span class="legendary-dot legendary"></span> 传奇 — 影片库中出现极少，琥珀金呼吸光效
-          <br/>
-          <span class="legendary-dot epic"></span> 史诗 — 影片库中出现较少，紫色呼吸光效
-          <br/>
-          <span class="legendary-dot rare"></span> 稀有 — 影片库中出现一般，蓝色微光
-          <br/>
-          <span class="legendary-dot common"></span> 普通 — 影片库中出现频繁，无光效
+          <div class="legendary-colors-grid">
+            <div class="legendary-color-item">
+              <span class="legendary-dot legendary" :style="{ background: bubbleCfg.rarityColors.legendary }"></span>
+              <span>传奇</span>
+              <input type="color" v-model="bubbleCfg.rarityColors.legendary" class="rarity-color-input" title="传奇颜色" />
+            </div>
+            <div class="legendary-color-item">
+              <span class="legendary-dot epic" :style="{ background: bubbleCfg.rarityColors.epic }"></span>
+              <span>史诗</span>
+              <input type="color" v-model="bubbleCfg.rarityColors.epic" class="rarity-color-input" title="史诗颜色" />
+            </div>
+            <div class="legendary-color-item">
+              <span class="legendary-dot rare" :style="{ background: bubbleCfg.rarityColors.rare }"></span>
+              <span>稀有</span>
+              <input type="color" v-model="bubbleCfg.rarityColors.rare" class="rarity-color-input" title="稀有颜色" />
+            </div>
+            <div class="legendary-color-item">
+              <span class="legendary-dot common" :style="{ background: bubbleCfg.rarityColors.common }"></span>
+              <span>普通</span>
+              <input type="color" v-model="bubbleCfg.rarityColors.common" class="rarity-color-input" title="普通颜色" />
+            </div>
+          </div>
+          <div class="legendary-hint-text">
+            <span class="legendary-dot legendary"></span> 传奇 — 影片库中出现极少，琥珀金呼吸光效
+            <br/>
+            <span class="legendary-dot epic"></span> 史诗 — 影片库中出现较少，紫色呼吸光效
+            <br/>
+            <span class="legendary-dot rare"></span> 稀有 — 影片库中出现一般，蓝色微光
+            <br/>
+            <span class="legendary-dot common"></span> 普通 — 影片库中出现频繁，无光效
+          </div>
         </div>
 
         <div class="form-row" style="margin-top: 16px;">
@@ -251,6 +275,12 @@ export default {
         colorMode: 'legendary', palette: 'monet',
         customGradients: [], customGradientsText: '',
         goldLegend: true, bubbleCount: 36,
+        rarityColors: {
+          legendary: '#c89a30',
+          epic: '#7040a0',
+          rare: '#3070a8',
+          common: '#607080',
+        },
       },
       palettes: [
         { key: 'monet',    label: '莫奈',    colors: ['linear-gradient(135deg, #c4b5d8, #a5b4c8)', 'linear-gradient(135deg, #d4c4e0, #b8c5d6)'] },
@@ -334,7 +364,7 @@ export default {
         if (saved) {
           const parsed = JSON.parse(saved)
           this.bubbleCfg = {
-            ...{ baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'legendary', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true, bubbleCount: 36 },
+            ...{ baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'legendary', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true, bubbleCount: 36, rarityColors: { legendary: '#c89a30', epic: '#7040a0', rare: '#3070a8', common: '#607080' } },
             ...parsed,
           }
           if (parsed.customGradients) {
@@ -355,7 +385,7 @@ export default {
       localStorage.setItem('genres_bubble_cfg', JSON.stringify(this.bubbleCfg))
     },
     resetBubbleCfg() {
-      this.bubbleCfg = { baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'legendary', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true, bubbleCount: 36 }
+      this.bubbleCfg = { baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'legendary', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true, bubbleCount: 36, rarityColors: { legendary: '#c89a30', epic: '#7040a0', rare: '#3070a8', common: '#607080' } }
       localStorage.removeItem('genres_bubble_cfg')
       this.$message.info('已恢复默认')
     }
@@ -484,6 +514,41 @@ export default {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
+
+.legendary-colors-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.legendary-color-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legendary-color-item .legendary-dot {
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.rarity-color-input {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+}
+
+.rarity-color-input::-webkit-color-swatch-wrapper { padding: 2px; }
+.rarity-color-input::-webkit-color-swatch { border: none; border-radius: 2px; }
+
+.legendary-hint-text { line-height: 1.9; }
 
 .legendary-dot {
   display: inline-block;

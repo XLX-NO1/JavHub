@@ -206,7 +206,14 @@ export default {
   },
   computed: {
     cloudStyle() {
-      return { gap: `${this.cfg.spacing}px` }
+      const c = this.cfg.rarityColors || {}
+      return {
+        gap: `${this.cfg.spacing}px`,
+        '--rarity-legendary': c.legendary || '#c89a30',
+        '--rarity-epic': c.epic || '#7040a0',
+        '--rarity-rare': c.rare || '#3070a8',
+        '--rarity-common': c.common || '#607080',
+      }
     },
     categoryId() {
       return parseInt(this.$route.params.categoryId)
@@ -383,6 +390,12 @@ export default {
       const mouseY = e.clientY
       const bubbles = cloud.querySelectorAll('.bubble')
 
+      // 读取当前配色 CSS 变量
+      const cs = getComputedStyle(cloud)
+      const lc = (cs.getPropertyValue('--rarity-legendary').trim() || '#c89a30')
+      const ec = (cs.getPropertyValue('--rarity-epic').trim() || '#7040a0')
+      const rc = (cs.getPropertyValue('--rarity-rare').trim() || '#3070a8')
+
       const scales = new Map()
       const hoveredBubbles = []
       bubbles.forEach(bubble => {
@@ -427,11 +440,11 @@ export default {
           // Proximity scale + hover outer glow (GSAP overrides CSS breathing)
           let outerGlow = ''
           if (isLegendary && inLegendaryMode) {
-            outerGlow = '0 0 25px 8px rgba(255, 200, 0, 0.98), 0 0 60px 18px rgba(255, 160, 0, 0.85), 0 0 120px 36px rgba(255, 110, 0, 0.55), 0 0 200px 60px rgba(255, 80, 0, 0.3)'
+            outerGlow = `0 0 25px 8px ${lc}fa, 0 0 60px 18px ${lc}d6, 0 0 120px 36px ${lc}8c, 0 0 200px 60px ${lc}4d`
           } else if (bubble.classList.contains('rarity-epic') && inLegendaryMode) {
-            outerGlow = '0 0 18px 6px rgba(160, 80, 220, 0.9), 0 0 45px 14px rgba(130, 60, 190, 0.65)'
+            outerGlow = `0 0 18px 6px ${ec}e6, 0 0 45px 14px ${ec}a6`
           } else if (isRare && inLegendaryMode) {
-            outerGlow = '0 0 14px 5px rgba(70, 130, 200, 0.75), 0 0 35px 12px rgba(50, 110, 180, 0.45)'
+            outerGlow = `0 0 14px 5px ${rc}bf, 0 0 35px 12px ${rc}73`
           } else {
             outerGlow = '0 6px 24px rgba(0,0,0,0.35)'
           }
@@ -719,7 +732,7 @@ export default {
 .bubble.rarity-common {
   border-radius: 50px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
-  background: linear-gradient(135deg, #8090a0, #607080) !important;
+  background: linear-gradient(135deg, var(--rarity-common), color-mix(in srgb, var(--rarity-common) 70%, #000)) !important;
 }
 .bubble.rarity-common:hover {
   box-shadow: 0 5px 18px rgba(0, 0, 0, 0.35);
@@ -729,15 +742,15 @@ export default {
 .bubble.rarity-rare {
   border-radius: 50px;
   box-shadow:
-    0 0 8px 3px rgba(70, 130, 200, 0.4),
-    0 0 20px 8px rgba(50, 110, 180, 0.2);
-  background: linear-gradient(135deg, #4890c8, #3070a8) !important;
+    0 0 8px 3px color-mix(in srgb, var(--rarity-rare) 60%, transparent),
+    0 0 20px 8px color-mix(in srgb, var(--rarity-rare) 35%, transparent);
+  background: linear-gradient(135deg, var(--rarity-rare), color-mix(in srgb, var(--rarity-rare) 75%, #000)) !important;
   filter: brightness(1.04);
 }
 .bubble.rarity-rare:hover {
   box-shadow:
-    0 0 14px 5px rgba(70, 140, 220, 0.6),
-    0 0 35px 12px rgba(50, 120, 200, 0.35);
+    0 0 14px 5px color-mix(in srgb, var(--rarity-rare) 75%, transparent),
+    0 0 35px 12px color-mix(in srgb, var(--rarity-rare) 45%, transparent);
   filter: brightness(1.1);
 }
 
@@ -745,9 +758,9 @@ export default {
 .bubble.rarity-epic {
   border-radius: 50px;
   box-shadow:
-    0 0 12px 4px rgba(160, 80, 220, 0.5),
-    0 0 35px 10px rgba(130, 60, 190, 0.3);
-  background: linear-gradient(135deg, #9060c0, #7040a0) !important;
+    0 0 12px 4px color-mix(in srgb, var(--rarity-epic) 60%, transparent),
+    0 0 35px 10px color-mix(in srgb, var(--rarity-epic) 35%, transparent);
+  background: linear-gradient(135deg, var(--rarity-epic), color-mix(in srgb, var(--rarity-epic) 75%, #000)) !important;
   animation: epic-breathe 2.8s ease-in-out infinite;
 }
 .bubble.rarity-epic::before {
@@ -777,14 +790,14 @@ export default {
 @keyframes epic-breathe {
   0%, 100% {
     box-shadow:
-      0 0 10px 3px rgba(155, 75, 215, 0.5),
-      0 0 30px 9px rgba(125, 55, 185, 0.3);
+      0 0 10px 3px color-mix(in srgb, var(--rarity-epic) 60%, transparent),
+      0 0 30px 9px color-mix(in srgb, var(--rarity-epic) 35%, transparent);
     filter: brightness(1.04) saturate(1.1);
   }
   50% {
     box-shadow:
-      0 0 18px 6px rgba(175, 95, 235, 0.7),
-      0 0 50px 15px rgba(145, 70, 205, 0.42);
+      0 0 18px 6px color-mix(in srgb, var(--rarity-epic) 80%, transparent),
+      0 0 50px 15px color-mix(in srgb, var(--rarity-epic) 50%, transparent);
     filter: brightness(1.1) saturate(1.25);
   }
 }
@@ -799,10 +812,10 @@ export default {
 .bubble.rarity-legendary {
   border-radius: 12px;
   box-shadow:
-    0 0 30px 8px rgba(255, 180, 0, 0.45),
-    0 0 80px 20px rgba(255, 140, 0, 0.28),
-    0 0 140px 40px rgba(255, 100, 0, 0.14),
-    0 0 12px 4px rgba(255, 200, 50, 0.7),
+    0 0 30px 8px color-mix(in srgb, var(--rarity-legendary) 55%, transparent),
+    0 0 80px 20px color-mix(in srgb, var(--rarity-legendary) 35%, transparent),
+    0 0 140px 40px color-mix(in srgb, var(--rarity-legendary) 18%, transparent),
+    0 0 12px 4px color-mix(in srgb, var(--rarity-legendary) 85%, transparent),
     inset 0 2px 3px rgba(255, 255, 220, 0.9),
     inset 0 -2px 3px rgba(180, 100, 0, 0.6),
     inset 2px 0 3px rgba(255, 255, 220, 0.7),
@@ -810,9 +823,12 @@ export default {
     0 6px 24px rgba(0, 0, 0, 0.5);
   background: linear-gradient(
     160deg,
-    #d4a840 0%, #c8962c 20%,
-    #e8bc44 40%, #d4a035 60%,
-    #b8822a 80%, #c89a30 100%
+    color-mix(in srgb, var(--rarity-legendary) 100%, #fff 30%) 0%,
+    var(--rarity-legendary) 20%,
+    color-mix(in srgb, var(--rarity-legendary) 100%, #fff 20%) 40%,
+    var(--rarity-legendary) 60%,
+    color-mix(in srgb, var(--rarity-legendary) 100%, #000 20%) 80%,
+    var(--rarity-legendary) 100%
   ) !important;
   filter: brightness(1.08) saturate(1.25);
   animation: legendary-breathe 2.6s ease-in-out infinite;
@@ -866,10 +882,10 @@ export default {
 @keyframes legendary-breathe {
   0%, 100% {
     box-shadow:
-      0 0 24px 6px rgba(255, 175, 0, 0.5),
-      0 0 70px 18px rgba(255, 135, 0, 0.32),
-      0 0 130px 36px rgba(255, 100, 0, 0.16),
-      0 0 10px 3px rgba(255, 200, 50, 0.75),
+      0 0 24px 6px color-mix(in srgb, var(--rarity-legendary) 60%, transparent),
+      0 0 70px 18px color-mix(in srgb, var(--rarity-legendary) 40%, transparent),
+      0 0 130px 36px color-mix(in srgb, var(--rarity-legendary) 20%, transparent),
+      0 0 10px 3px color-mix(in srgb, var(--rarity-legendary) 90%, transparent),
       inset 0 2px 3px rgba(255, 255, 220, 0.9),
       inset 0 -2px 3px rgba(180, 100, 0, 0.6),
       inset 2px 0 3px rgba(255, 255, 220, 0.7),
@@ -879,10 +895,10 @@ export default {
   }
   50% {
     box-shadow:
-      0 0 36px 10px rgba(255, 215, 0, 0.75),
-      0 0 100px 28px rgba(255, 165, 0, 0.5),
-      0 0 180px 55px rgba(255, 120, 0, 0.28),
-      0 0 14px 5px rgba(255, 230, 80, 0.95),
+      0 0 36px 10px color-mix(in srgb, var(--rarity-legendary) 90%, transparent),
+      0 0 100px 28px color-mix(in srgb, var(--rarity-legendary) 60%, transparent),
+      0 0 180px 55px color-mix(in srgb, var(--rarity-legendary) 35%, transparent),
+      0 0 14px 5px color-mix(in srgb, var(--rarity-legendary) 100%, transparent),
       inset 0 3px 5px rgba(255, 255, 240, 1),
       inset 0 -3px 5px rgba(160, 85, 0, 0.7),
       inset 3px 0 5px rgba(255, 255, 240, 0.85),
