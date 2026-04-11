@@ -343,7 +343,7 @@ export default {
         const scale = scales.get(bubble)
         const isOverlapped = overlapped.has(bubble)
         const isHovered = hoveredBubbles.includes(bubble)
-        const isLegendary = bubble.classList.contains('legendary')
+        const isLegendary = bubble.classList.contains('rarity-legendary')
         const isRare = bubble.classList.contains('rarity-rare')
         const inLegendaryMode = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
 
@@ -426,9 +426,11 @@ export default {
     },
     legendaryBubbleClass(tag) {
       if (this.cfg.colorMode !== 'legendary' || !this.cfg.goldLegend) return ''
-      // Always return 'legendary' as base class so glow shows even before stats load
-      const rarity = this.rarityMap[tag.id] || 'legendary'
-      return rarity === 'legendary' ? 'legendary' : `legendary rarity-${rarity}`
+      // Only the ACTUAL legendary tier gets 'legendary' class (triggers shimmer)
+      // rare/common/popular get their tier class only (no shimmer, just breathing or glow)
+      const rarity = this.rarityMap[tag.id] || 'common'
+      if (rarity === 'legendary') return 'legendary rarity-legendary'
+      return `rarity-${rarity}`
     },
   },
   beforeUnmount() {
@@ -475,12 +477,12 @@ export default {
 
 /* ================================================
    LEGENDARY MODE — 炉石传说橙卡质感
-   GSAP manages: proximity scale + z-index + hover glow
-   CSS manages: shimmer sweep + breathing glow (always on)
+   GSAP: proximity scale + z-index + hover outer glow
+   CSS: shimmer (legendary only) + breathing (all legendary bubbles)
    ================================================ */
 
-/* Shimmer sweep — CSS keyframe, always running in legendary mode */
-.bubble.legendary::before {
+/* Shimmer sweep — only on ACTUAL legendary tier bubbles */
+.bubble.rarity-legendary::before {
   content: '';
   position: absolute;
   top: 0; left: -30%;
@@ -489,9 +491,9 @@ export default {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 245, 180, 0.5) 40%,
-    rgba(255, 255, 220, 0.9) 50%,
-    rgba(255, 245, 180, 0.5) 60%,
+    rgba(255, 245, 180, 0.55) 40%,
+    rgba(255, 255, 220, 0.95) 50%,
+    rgba(255, 245, 180, 0.55) 60%,
     transparent 100%
   );
   transform: skewX(-18deg);
@@ -506,10 +508,12 @@ export default {
   100% { left: 130%; }
 }
 
-/* Legendary breathing glow — 3-layer gold, CSS keyframe */
+/* Breathing glow — ALL legendary-mode bubbles breathe (legendary + rare + common) */
 .bubble.legendary {
-  overflow: hidden;  /* clip shimmer ::before */
   animation: legendary-breathe 2.2s ease-in-out infinite;
+}
+.bubble.rarity-rare {
+  animation: rare-breathe 3s ease-in-out infinite;
 }
 
 @keyframes legendary-breathe {
@@ -529,18 +533,6 @@ export default {
   }
 }
 
-/* Hover: GSAP takes over glow + scale; pause CSS animations */
-.bubble.legendary:hover {
-  animation-play-state: paused;
-}
-.bubble.legendary:hover::before {
-  animation-play-state: paused;
-}
-
-/* Rare: 2-layer purple glow with subtle breathing */
-.bubble.rarity-rare {
-  animation: rare-breathe 3s ease-in-out infinite;
-}
 @keyframes rare-breathe {
   0%, 100% {
     box-shadow:
@@ -555,18 +547,19 @@ export default {
     filter: brightness(1.08) saturate(1.18);
   }
 }
-.bubble.rarity-rare:hover {
+
+/* Hover: GSAP pauses CSS animations via animation-play-state */
+.bubble.legendary:hover,
+.bubble.rarity-legendary:hover {
   animation-play-state: paused;
 }
-
-/* Common: subtle blue-gray shimmer (no breathing) */
-.bubble.rarity-common {
-  box-shadow: 0 0 5px 1.5px rgba(100, 160, 200, 0.42);
-  filter: brightness(1.02);
+.bubble.rarity-legendary:hover::before {
+  animation-play-state: paused;
 }
 
 /* Popular: no glow */
 .bubble.rarity-popular {
   box-shadow: 0 4px 14px rgba(0,0,0,0.22);
 }
+
 </style>
