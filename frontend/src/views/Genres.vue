@@ -59,8 +59,8 @@
 
     <!-- 演员 Tab：头像卡片 -->
     <div v-if="activeTab === 'actress'" class="actress-tab">
-      <div class="actress-header" v-if="!actressesLoading && actresses.length">
-        <button class="shuffle-btn" @click="prevActressPage" :disabled="actressPage === 0">
+      <div class="actress-header" v-if="!actressesLoading && displayedActresses.length">
+        <button class="shuffle-btn" @click="prevActressPage" :disabled="actressPage <= 1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
           上一页
         </button>
@@ -72,7 +72,7 @@
           </svg>
           随机
         </button>
-        <button class="shuffle-btn" @click="nextActressPage" :disabled="actressPage >= actressTotalPages - 1">
+        <button class="shuffle-btn" @click="nextActressPage" :disabled="actressPage >= actressTotalPages">
           下一页
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
