@@ -142,9 +142,20 @@
                 :key="key"
                 :value="key"
               >
-                {{ theme.icon }} {{ theme.label }}
+                {{ theme.label }}
               </option>
             </select>
+            <div class="theme-color-preview">
+              <span
+                v-for="(theme, key) in themes"
+                :key="key"
+                class="color-dot"
+                :class="{ active: currentTheme === key }"
+                :style="{ background: themes[key].vars['--accent'] }"
+                :title="theme.label"
+                @click="switchTheme(key)"
+              ></span>
+            </div>
             <div class="theme-accent-bar" :style="{ background: themes[currentTheme]?.vars['--accent'] }"></div>
           </div>
         </div>
@@ -651,5 +662,33 @@ export default {
   height: 3px;
   width: 100%;
   transition: background 0.3s ease;
+}
+
+.theme-color-preview {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.color-dot:hover {
+  transform: scale(1.2);
+}
+
+.color-dot.active {
+  border-color: var(--text-primary);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px currentColor;
 }
 </style>
