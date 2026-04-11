@@ -376,10 +376,10 @@ export default {
       rarityMap: {},
       bubbleRects: new Map(),
       // 演员
-      actresses: [],
       displayedActresses: [],
       actressesLoading: false,
-      actressPage: 0,
+      actressPage: 1,
+      actressTotalPages: 1,
       // 系列
       seriesList: [],
       displayedSeries: [],
@@ -408,12 +408,8 @@ export default {
     },
     actressPageSize() {
       const size = this.cfg.actressAvatarSize || 'medium'
-      // 小头像4行约48, 中3行约36, 大2行约20
       const map = { small: 48, medium: 36, large: 20 }
       return map[size] || 36
-    },
-    actressTotalPages() {
-      return Math.max(1, Math.ceil(this.actresses.length / this.actressPageSize))
     },
   },
   watch: {
@@ -422,11 +418,8 @@ export default {
       this.displayedTags = this.shuffledTags.slice(0, newVal)
     },
     'cfg.actressAvatarSize'() {
-      // 头像尺寸变化时，重新计算当前页（页码可能超界）
-      if (this.actressPage >= this.actressTotalPages) {
-        this.actressPage = Math.max(0, this.actressTotalPages - 1)
-      }
-      this._applyActressPage()
+      // page_size 变了，total_pages 也变，重新取第一页
+      this.loadActresses(1)
     },
   },
   async mounted() {
@@ -702,14 +695,15 @@ export default {
     handleActressImgError(e) {
       e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="60" fill="%231a1a2e"/><circle cx="60" cy="48" r="20" fill="%23333"/><ellipse cx="60" cy="95" rx="30" ry="22" fill="%23333"/></svg>'
     },
-    async loadActresses() {
+    async loadActresses(page = 1) {
       this.actressesLoading = true
       try {
-        const resp = await api.listActresses(1, 100)
+        const pageSize = this.actressPageSize
+        const resp = await api.listActresses(page, pageSize)
         const raw = resp.data
-        this.actresses = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
-        this.actressPage = 0
-        this._applyActressPage()
+        this.displayedActresses = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
+        this.actressTotalPages = raw.total_pages || 1
+        this.actressPage = page
       } catch (e) {
         console.error('Load actresses FAILED:', e?.message, 'status:', e?.response?.status, 'data:', e?.response?.data, 'full:', e)
       } finally {
@@ -728,25 +722,18 @@ export default {
         this.seriesLoading = false
       }
     },
-    _applyActressPage() {
-      const shuffled = shuffle(this.actresses)
-      const start = this.actressPage * this.actressPageSize
-      this.displayedActresses = shuffled.slice(start, start + this.actressPageSize)
-    },
     randomActressPage() {
-      this.actressPage = Math.floor(Math.random() * this.actressTotalPages)
-      this._applyActressPage()
+      const page = Math.floor(Math.random() * this.actressTotalPages) + 1
+      this.loadActresses(page)
     },
     nextActressPage() {
-      if (this.actressPage < this.actressTotalPages - 1) {
-        this.actressPage++
-        this._applyActressPage()
+      if (this.actressPage < this.actressTotalPages) {
+        this.loadActresses(this.actressPage + 1)
       }
     },
     prevActressPage() {
-      if (this.actressPage > 0) {
-        this.actressPage--
-        this._applyActressPage()
+      if (this.actressPage > 1) {
+        this.loadActresses(this.actressPage - 1)
       }
     },
     reshuffleSeries() {
