@@ -30,7 +30,7 @@
 
       <div v-else ref="tagCloudRef" class="tag-cloud" :style="cloudStyle">
         <div
-          v-for="tag in shuffledTags"
+          v-for="tag in displayedTags"
           :key="tag.id"
           class="bubble"
           :class="legendaryBubbleClass(tag)"
@@ -95,7 +95,7 @@ const PALETTES = {
     'linear-gradient(135deg, #90b898, #a0c8a8)',
     'linear-gradient(135deg, #78a080, #88b090)',
   ],
-  // 金色传说：低饱和琥珀金，琥珀、褐金、锈金（暗色主题友好）
+  // 金色：低饱和琥珀金，琥珀、褐金、锈金
   gold: [
     'linear-gradient(135deg, #a88050, #c8a068)',
     'linear-gradient(135deg, #c89050, #d8b070)',
@@ -106,6 +106,99 @@ const PALETTES = {
     'linear-gradient(135deg, #b89058, #c8a870)',
     'linear-gradient(135deg, #a87848, #c09860)',
   ],
+  // 动漫：高饱和粉紫
+  anime: [
+    'linear-gradient(135deg, #e8a0c8, #f0b8d8)',
+    'linear-gradient(135deg, #c0a0e0, #d0b0f0)',
+    'linear-gradient(135deg, #f0a0b0, #f8c0d0)',
+    'linear-gradient(135deg, #a0c0ff, #b0d8ff)',
+    'linear-gradient(135deg, #ffa0c0, #ffc0d8)',
+    'linear-gradient(135deg, #c0e0ff, #d0f0ff)',
+    'linear-gradient(135deg, #e0a0d0, #f0b8e0)',
+    'linear-gradient(135deg, #80c0a0, #90d0b0)',
+  ],
+  // 复古：暖褐做旧
+  retro: [
+    'linear-gradient(135deg, #c89050, #d0a068)',
+    'linear-gradient(135deg, #8b7355, #a08060)',
+    'linear-gradient(135deg, #d09060, #e0b080)',
+    'linear-gradient(135deg, #a07040, #b08858)',
+    'linear-gradient(135deg, #c8a070, #d8b888)',
+    'linear-gradient(135deg, #b08050, #c09868)',
+    'linear-gradient(135deg, #9a7060, #b08878)',
+    'linear-gradient(135deg, #c0a080, #d0b898)',
+  ],
+  // 赛博：蓝紫霓虹
+  cyber: [
+    'linear-gradient(135deg, #00c8ff, #0080ff)',
+    'linear-gradient(135deg, #8000ff, #c000ff)',
+    'linear-gradient(135deg, #00ffcc, #00e0a0)',
+    'linear-gradient(135deg, #ff0080, #ff4000)',
+    'linear-gradient(135deg, #0080ff, #00c8ff)',
+    'linear-gradient(135deg, #ff00ff, #8000ff)',
+    'linear-gradient(135deg, #00ff80, #00c0ff)',
+    'linear-gradient(135deg, #ff8000, #ffcc00)',
+  ],
+  // 马卡龙：粉嫩糖果
+  pastel: [
+    'linear-gradient(135deg, #f0b8c0, #f8d0d8)',
+    'linear-gradient(135deg, #b8d0f0, #c8e0f8)',
+    'linear-gradient(135deg, #d0b8f0, #e0c8f8)',
+    'linear-gradient(135deg, #f8e0c0, #fff0d8)',
+    'linear-gradient(135deg, #c0f0d0, #d0f8e0)',
+    'linear-gradient(135deg, #f0c0d8, #f8d8e8)',
+    'linear-gradient(135deg, #d8f0f0, #e8f8f8)',
+    'linear-gradient(135deg, #f8d0c0, #ffe0d8)',
+  ],
+  // Nord：冷淡北欧风
+  nord: [
+    'linear-gradient(135deg, #88c0d0, #81a1c1)',
+    'linear-gradient(135deg, #a3be8c, #b48ead)',
+    'linear-gradient(135deg, #5e81ac, #81a1c1)',
+    'linear-gradient(135deg, #bf616a, #d08770)',
+    'linear-gradient(135deg, #8fbcbb, #88c0d0)',
+    'linear-gradient(135deg, #b48ead, #a3be8c)',
+    'linear-gradient(135deg, #d8dee9, #eceff4)',
+    'linear-gradient(135deg, #4c566a, #5e81ac)',
+  ],
+  // 霓虹：荧光撞色
+  neon: [
+    'linear-gradient(135deg, #ff0080, #ff4000)',
+    'linear-gradient(135deg, #00ff80, #00c0ff)',
+    'linear-gradient(135deg, #ff00ff, #00ffff)',
+    'linear-gradient(135deg, #ffff00, #ff8000)',
+    'linear-gradient(135deg, #00ff00, #80ff00)',
+    'linear-gradient(135deg, #8000ff, #ff0080)',
+    'linear-gradient(135deg, #00c0ff, #0080ff)',
+    'linear-gradient(135deg, #ff8000, #ffff00)',
+  ],
+  // 大地：土褐森绿
+  earth: [
+    'linear-gradient(135deg, #8b7355, #a08060)',
+    'linear-gradient(135deg, #6b8e5a, #7a9e68)',
+    'linear-gradient(135deg, #a08050, #b09068)',
+    'linear-gradient(135deg, #5a7a4a, #6a8a58)',
+    'linear-gradient(135deg, #9a8060, #aa9070)',
+    'linear-gradient(135deg, #7a6a50, #8a7a60)',
+    'linear-gradient(135deg, #6b8e3a, #7b9e4a)',
+    'linear-gradient(135deg, #8a7060, #9a8070)',
+  ],
+  // 糖果：糖果色
+  candy: [
+    'linear-gradient(135deg, #ffb8d0, #ffc8e0)',
+    'linear-gradient(135deg, #b8e0ff, #c8f0ff)',
+    'linear-gradient(135deg, #ffd0a0, #ffe0b8)',
+    'linear-gradient(135deg, #d0ffb8, #e0ffc8)',
+    'linear-gradient(135deg, #e0b8ff, #f0c8ff)',
+    'linear-gradient(135deg, #ffb8b8, #ffc8c8)',
+    'linear-gradient(135deg, #b8ffb8, #c8ffc8)',
+    'linear-gradient(135deg, #ffffb8, #ffffd0)',
+  ],
+}
+
+// __all__ 特殊键：在 getGradient 中拼接所有色系的渐变
+function getAllGradients() {
+  return Object.values(PALETTES).flat()
 }
 
 // Gold legend rarity gradients — legendary(gold) → common(blue) → popular(gray)
@@ -160,10 +253,11 @@ const DEFAULT_CFG = {
   baseSize: 16,
   fillPercent: 50,
   spacing: 16,
-  colorMode: 'random',   // 'random' | 'legendary'
-  palette: 'monet',      // for random mode: monet/sunset/ocean/forest/gold/custom
-  customGradients: [],   // for custom palette
-  goldLegend: true,      // enable gold legend mode
+  colorMode: 'legendary', // 'random' | 'legendary'
+  palette: 'monet',       // for random mode: monet/sunset/ocean/forest/gold/custom
+  customGradients: [],    // for custom palette
+  goldLegend: true,       // enable gold legend mode
+  bubbleCount: 36,        // 每页显示的气泡数量
 }
 
 export default {
@@ -172,11 +266,12 @@ export default {
     return {
       categories: [],
       shuffledTags: [],
+      displayedTags: [],   // 当前页显示的气泡（由 bubbleCount 控制）
       loading: false,
       statsLoading: false,
       cfg: { ...DEFAULT_CFG },
       categoryStats: {},  // { categoryId: video_count }
-      rarityMap: {},      // { categoryId: 'legendary'|'rare'|'common'|'popular' }
+      rarityMap: {},      // { categoryId: 'legendary'|'epic'|'rare'|'common' }
       bubbleRects: new Map(),
     }
   },
@@ -185,12 +280,19 @@ export default {
       return { gap: `${this.cfg.spacing}px` }
     },
   },
+  watch: {
+    'cfg.bubbleCount'(newVal) {
+      // bubbleCount 改变时重新截取显示范围
+      this.displayedTags = this.shuffledTags.slice(0, newVal)
+    },
+  },
   async mounted() {
     this.loadCfg()
-    await this.loadCategories()
-    if (this.cfg.goldLegend) {
-      await this.loadCategoryStats()
-    }
+    // 并行加载：题材列表 + 统计数据一起拉，stats 由全局缓存加速
+    await Promise.all([
+      this.loadCategories(),
+      this.cfg.goldLegend ? this.loadCategoryStats() : Promise.resolve(),
+    ])
   },
   methods: {
     loadCfg() {
@@ -202,9 +304,14 @@ export default {
       } catch {}
     },
     getGradient(tag, palette) {
-      const gradients = palette === 'custom' && this.cfg.customGradients.length
-        ? this.cfg.customGradients
-        : PALETTES[palette] || PALETTES.monet
+      let gradients
+      if (palette === '__all__') {
+        gradients = getAllGradients()
+      } else if (palette === '__custom__') {
+        gradients = this.cfg.customGradients.length ? this.cfg.customGradients : PALETTES.monet
+      } else {
+        gradients = PALETTES[palette] || PALETTES.monet
+      }
       const idx = hashCode(tag.name_en || tag.name_ja || tag.name) % gradients.length
       return gradients[idx]
     },
@@ -218,11 +325,10 @@ export default {
       const size = this.cfg.baseSize
       const fill = this.cfg.fillPercent / 100
       const isLegendary = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
-      const gradient = isLegendary
-        ? this.getRarityGradient(tag)
-        : this.getGradient(tag, this.cfg.palette)
       const style = {
-        background: gradient,
+        // background set by CSS class for legendary mode (metallic gradient)
+        // inline gradient only for random/palette mode
+        background: isLegendary ? undefined : this.getGradient(tag, this.cfg.palette),
         fontSize: `${size}px`,
         padding: `${Math.round(size * fill * 0.6)}px ${Math.round(size * fill * 1.2)}px`,
       }
@@ -234,9 +340,11 @@ export default {
         const resp = await api.listCategories()
         this.categories = Array.isArray(resp.data) ? resp.data : (resp.data.data || [])
         this.shuffledTags = shuffle(this.categories)
+        this.displayedTags = this.shuffledTags.slice(0, this.cfg.bubbleCount)
       } catch (e) {
         console.error('Load categories failed:', e)
         this.categories = []
+        this.displayedTags = []
       } finally {
         this.loading = false
         this.$nextTick(() => this.initGsap())
@@ -245,8 +353,8 @@ export default {
     async loadCategoryStats() {
       this.statsLoading = true
       try {
-        const resp = await api.categoryStats()
-        const stats = Array.isArray(resp.data) ? resp.data : (resp.data || [])
+        // 使用共享缓存：内存+localStorage，1小时内不重复请求
+        const stats = await api.getCategoryStats()
         const statsMap = {}
         stats.forEach(s => { statsMap[s.id] = s.video_count || 0 })
         this.categoryStats = statsMap
@@ -259,16 +367,17 @@ export default {
       }
     },
     computeRarity(stats) {
-      // Sort categories by video_count ascending
+      // Hearthstone风格分布：legendary(橙)=最少出现, epic(紫), rare(蓝), common(白)=最常出现
+      // 按 video_count 升序：最少 = legendary，最多 = common
       const sorted = [...stats].sort((a, b) => (a.video_count || 0) - (b.video_count || 0))
       const n = sorted.length
       const rarityMap = {}
       sorted.forEach((cat, i) => {
-        const pct = i / Math.max(n - 1, 1)  // 0 = rarest, 1 = most popular
-        if (pct < 0.2) rarityMap[cat.id] = 'legendary'
-        else if (pct < 0.5) rarityMap[cat.id] = 'rare'
-        else if (pct < 0.8) rarityMap[cat.id] = 'common'
-        else rarityMap[cat.id] = 'popular'
+        const pct = i / Math.max(n - 1, 1)  // 0 = rarest (legendary), 1 = most common
+        if (pct < 0.05)       rarityMap[cat.id] = 'legendary'  // 橙卡：Top 5% 最稀缺
+        else if (pct < 0.20) rarityMap[cat.id] = 'epic'        // 紫卡：5-20%
+        else if (pct < 0.50) rarityMap[cat.id] = 'rare'       // 蓝卡：20-50%
+        else                  rarityMap[cat.id] = 'common'      // 白卡：50-100% 最常见
       })
       this.rarityMap = rarityMap
     },
@@ -351,9 +460,14 @@ export default {
           // Proximity scale + hover outer glow (GSAP overrides CSS breathing)
           let outerGlow = ''
           if (isLegendary && inLegendaryMode) {
-            outerGlow = '0 0 20px 6px rgba(255, 200, 0, 0.95), 0 0 50px 16px rgba(255, 160, 0, 0.7), 0 0 100px 30px rgba(255, 120, 0, 0.45)'
+            // 橙卡 hover 光爆
+            outerGlow = '0 0 25px 8px rgba(255, 200, 0, 0.98), 0 0 60px 18px rgba(255, 160, 0, 0.85), 0 0 120px 36px rgba(255, 110, 0, 0.55), 0 0 200px 60px rgba(255, 80, 0, 0.3)'
+          } else if (bubble.classList.contains('rarity-epic') && inLegendaryMode) {
+            // 紫卡 hover
+            outerGlow = '0 0 18px 6px rgba(160, 80, 220, 0.9), 0 0 45px 14px rgba(130, 60, 190, 0.65)'
           } else if (isRare && inLegendaryMode) {
-            outerGlow = '0 0 16px 5px rgba(180, 110, 255, 0.9), 0 0 40px 12px rgba(155, 80, 240, 0.6)'
+            // 蓝卡 hover
+            outerGlow = '0 0 14px 5px rgba(70, 130, 200, 0.75), 0 0 35px 12px rgba(50, 110, 180, 0.45)'
           } else {
             outerGlow = '0 6px 24px rgba(0,0,0,0.35)'
           }
@@ -400,11 +514,10 @@ export default {
         gsap.to(bubbles, { scale: 0, opacity: 0, duration: 0.08, stagger: 0, ease: 'power2.in' })
       }
       this.shuffledTags = shuffle(this.categories)
+      this.displayedTags = this.shuffledTags.slice(0, this.cfg.bubbleCount)
       this.$nextTick(() => {
         const newBubbles = this.$refs.tagCloudRef?.querySelectorAll('.bubble')
         if (!newBubbles?.length) return
-        // Explosion burst from center: each bubble flies outward from the grid center
-        // with random direction, overshoot scale (1.5 → 1), then settle
         gsap.fromTo(newBubbles,
           { scale: 0, opacity: 0, rotation: 0 },
           {
@@ -426,10 +539,8 @@ export default {
     },
     legendaryBubbleClass(tag) {
       if (this.cfg.colorMode !== 'legendary' || !this.cfg.goldLegend) return ''
-      // Only the ACTUAL legendary tier gets 'legendary' class (triggers shimmer)
-      // rare/common/popular get their tier class only (no shimmer, just breathing or glow)
       const rarity = this.rarityMap[tag.id] || 'common'
-      if (rarity === 'legendary') return 'legendary rarity-legendary'
+      if (rarity === 'legendary') return 'rarity-legendary'
       return `rarity-${rarity}`
     },
   },
@@ -476,96 +587,201 @@ export default {
 }
 
 /* ================================================
-   LEGENDARY MODE — 炉石传说橙卡质感
-   GSAP: proximity scale + z-index + hover outer glow
-   CSS: shimmer (legendary only) + breathing (all legendary bubbles)
+   LEGENDARY MODE — 炉石传说卡牌质感
+   Legendary=橙金 Epic=紫 Rare=蓝 Common=白（无光）
+   GSAP: proximity scale + hover glow
+   CSS: shimmer (epic/legendary only) + breathing glow (legendary only)
    ================================================ */
 
-/* Shimmer sweep — only on ACTUAL legendary tier bubbles */
-.bubble.rarity-legendary::before {
+/* ---------- 白卡 Common：无光效，纯药丸气泡 ---------- */
+.bubble.rarity-common {
+  border-radius: 50px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+  background: linear-gradient(135deg, #8090a0, #607080) !important;
+}
+.bubble.rarity-common:hover {
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- 蓝卡 Rare：蓝色微光，无呼吸无扫光 ---------- */
+.bubble.rarity-rare {
+  border-radius: 50px;
+  box-shadow:
+    0 0 8px 3px rgba(70, 130, 200, 0.4),
+    0 0 20px 8px rgba(50, 110, 180, 0.2);
+  background: linear-gradient(135deg, #4890c8, #3070a8) !important;
+  filter: brightness(1.04);
+}
+.bubble.rarity-rare:hover {
+  box-shadow:
+    0 0 14px 5px rgba(70, 140, 220, 0.6),
+    0 0 35px 12px rgba(50, 120, 200, 0.35);
+  filter: brightness(1.1);
+}
+
+/* ---------- 紫卡 Epic：紫色呼吸光晕 + 扫光 ---------- */
+.bubble.rarity-epic {
+  border-radius: 50px;
+  box-shadow:
+    0 0 12px 4px rgba(160, 80, 220, 0.5),
+    0 0 35px 10px rgba(130, 60, 190, 0.3);
+  background: linear-gradient(135deg, #9060c0, #7040a0) !important;
+  animation: epic-breathe 2.8s ease-in-out infinite;
+}
+.bubble.rarity-epic::before {
   content: '';
   position: absolute;
   top: 0; left: -30%;
-  width: 28%;
+  width: 26%;
   height: 100%;
   background: linear-gradient(
-    90deg,
+    105deg,
     transparent 0%,
-    rgba(255, 245, 180, 0.55) 40%,
-    rgba(255, 255, 220, 0.95) 50%,
-    rgba(255, 245, 180, 0.55) 60%,
+    rgba(220, 180, 255, 0.35) 45%,
+    rgba(240, 210, 255, 0.75) 50%,
+    rgba(220, 180, 255, 0.4) 55%,
     transparent 100%
   );
   transform: skewX(-18deg);
   pointer-events: none;
   border-radius: inherit;
   z-index: 1;
-  animation: legendary-shimmer 2.4s linear infinite;
+  animation: epic-shimmer 2.2s linear infinite;
 }
-
-@keyframes legendary-shimmer {
+@keyframes epic-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 10px 3px rgba(155, 75, 215, 0.5),
+      0 0 30px 9px rgba(125, 55, 185, 0.3);
+    filter: brightness(1.04) saturate(1.1);
+  }
+  50% {
+    box-shadow:
+      0 0 18px 6px rgba(175, 95, 235, 0.7),
+      0 0 50px 15px rgba(145, 70, 205, 0.42);
+    filter: brightness(1.1) saturate(1.25);
+  }
+}
+@keyframes epic-shimmer {
   0%   { left: -30%; }
   100% { left: 130%; }
 }
-
-/* Breathing glow — ALL legendary-mode bubbles breathe (legendary + rare + common) */
-.bubble.legendary {
-  animation: legendary-breathe 2.2s ease-in-out infinite;
+.bubble.rarity-epic:hover {
+  animation-play-state: paused;
 }
-.bubble.rarity-rare {
-  animation: rare-breathe 3s ease-in-out infinite;
+.bubble.rarity-epic:hover::before {
+  animation-play-state: paused;
 }
 
+/* ---------- 橙卡 Legendary：金色全特效 ---------- */
+.bubble.rarity-legendary {
+  border-radius: 12px;
+  box-shadow:
+    0 0 30px 8px rgba(255, 180, 0, 0.45),
+    0 0 80px 20px rgba(255, 140, 0, 0.28),
+    0 0 140px 40px rgba(255, 100, 0, 0.14),
+    0 0 12px 4px rgba(255, 200, 50, 0.7),
+    inset 0 2px 3px rgba(255, 255, 220, 0.9),
+    inset 0 -2px 3px rgba(180, 100, 0, 0.6),
+    inset 2px 0 3px rgba(255, 255, 220, 0.7),
+    inset -2px 0 3px rgba(180, 100, 0, 0.5),
+    0 6px 24px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(
+    160deg,
+    #d4a840 0%, #c8962c 20%,
+    #e8bc44 40%, #d4a035 60%,
+    #b8822a 80%, #c89a30 100%
+  ) !important;
+  filter: brightness(1.08) saturate(1.25);
+  animation: legendary-breathe 2.6s ease-in-out infinite;
+}
+.bubble.rarity-legendary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -35%;
+  width: 32%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 245, 180, 0.12) 20%,
+    rgba(255, 255, 220, 0.55) 42%,
+    rgba(255, 255, 240, 0.92) 48%,
+    rgba(255, 255, 220, 0.6) 54%,
+    rgba(255, 245, 180, 0.2) 65%,
+    transparent 100%
+  );
+  transform: skewX(-16deg);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+  animation: legendary-shimmer 1.8s linear infinite;
+}
+.bubble.rarity-legendary::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: -10%;
+  width: 20%;
+  height: 40%;
+  background: radial-gradient(
+    ellipse at bottom,
+    rgba(255, 230, 150, 0.35) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+  animation: legendary-bottom-glow 3s ease-in-out infinite;
+}
+@keyframes legendary-shimmer {
+  0%   { left: -35%; }
+  100% { left: 135%; }
+}
+@keyframes legendary-bottom-glow {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
 @keyframes legendary-breathe {
   0%, 100% {
     box-shadow:
-      0 0 8px  3px rgba(255, 185, 0, 0.88),
-      0 0 22px 6px rgba(255, 150, 0, 0.62),
-      0 0 50px 14px rgba(255, 110, 0, 0.32);
-    filter: brightness(1.05) saturate(1.1);
+      0 0 24px 6px rgba(255, 175, 0, 0.5),
+      0 0 70px 18px rgba(255, 135, 0, 0.32),
+      0 0 130px 36px rgba(255, 100, 0, 0.16),
+      0 0 10px 3px rgba(255, 200, 50, 0.75),
+      inset 0 2px 3px rgba(255, 255, 220, 0.9),
+      inset 0 -2px 3px rgba(180, 100, 0, 0.6),
+      inset 2px 0 3px rgba(255, 255, 220, 0.7),
+      inset -2px 0 3px rgba(180, 100, 0, 0.5),
+      0 6px 24px rgba(0, 0, 0, 0.5);
+    filter: brightness(1.06) saturate(1.2);
   }
   50% {
     box-shadow:
-      0 0 14px 5px rgba(255, 210, 0, 1),
-      0 0 36px 10px rgba(255, 170, 0, 0.78),
-      0 0 80px 22px rgba(255, 130, 0, 0.48);
-    filter: brightness(1.14) saturate(1.3);
+      0 0 36px 10px rgba(255, 215, 0, 0.75),
+      0 0 100px 28px rgba(255, 165, 0, 0.5),
+      0 0 180px 55px rgba(255, 120, 0, 0.28),
+      0 0 14px 5px rgba(255, 230, 80, 0.95),
+      inset 0 3px 5px rgba(255, 255, 240, 1),
+      inset 0 -3px 5px rgba(160, 85, 0, 0.7),
+      inset 3px 0 5px rgba(255, 255, 240, 0.85),
+      inset -3px 0 5px rgba(160, 85, 0, 0.6),
+      0 8px 32px rgba(0, 0, 0, 0.55);
+    filter: brightness(1.18) saturate(1.45);
   }
 }
-
-@keyframes rare-breathe {
-  0%, 100% {
-    box-shadow:
-      0 0 6px  2px rgba(170, 100, 255, 0.78),
-      0 0 16px 4px rgba(148, 76, 220, 0.50);
-    filter: brightness(1.03) saturate(1.08);
-  }
-  50% {
-    box-shadow:
-      0 0 10px 3px rgba(185, 115, 255, 0.92),
-      0 0 26px 7px rgba(165, 90, 240, 0.65);
-    filter: brightness(1.08) saturate(1.18);
-  }
-}
-
-/* Hover: GSAP pauses CSS animations via animation-play-state */
-.bubble.legendary:hover,
 .bubble.rarity-legendary:hover {
   animation-play-state: paused;
 }
-.bubble.rarity-legendary:hover::before {
+.bubble.rarity-legendary:hover::before,
+.bubble.rarity-legendary:hover::after {
   animation-play-state: paused;
 }
 
-/* Popular: no glow */
-.bubble.rarity-popular {
-  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+/* ---------- Active状态 ---------- */
+.bubble.active {
+  opacity: 1;
+  filter: brightness(1.1) saturate(1.2);
 }
 
-/* Common: subtle blue glow (no breathing in legendary mode) */
-.bubble.rarity-common {
-  box-shadow: 0 0 6px 2px rgba(100, 160, 200, 0.45);
-  filter: brightness(1.03);
-}
 
 </style>

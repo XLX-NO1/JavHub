@@ -152,25 +152,28 @@
           </div>
         </div>
 
-        <!-- 随机颜色：色系选择 -->
+        <!-- 随机颜色：下拉选择色系 -->
         <template v-if="bubbleCfg.colorMode === 'random'">
           <div class="form-group">
             <label>色系</label>
-            <div class="palette-grid">
-              <button
-                v-for="p in palettes"
-                :key="p.key"
-                class="palette-btn"
-                :class="{ active: bubbleCfg.palette === p.key }"
-                @click="bubbleCfg.palette = p.key"
-              >
-                <span class="palette-preview" :style="{ background: p.preview }"></span>
-                {{ p.label }}
-              </button>
+            <div class="palette-select-wrap">
+              <select class="palette-select" v-model="bubbleCfg.palette">
+                <option value="__all__">🌈 完全随机（混合全部色系）</option>
+                <option
+                  v-for="p in palettes"
+                  :key="p.key"
+                  :value="p.key"
+                >
+                  {{ p.label }}
+                </option>
+                <option value="__custom__">✏️ 自定义色</option>
+              </select>
+              <div class="palette-color-bar" :style="{ background: currentPalettePreview }"></div>
             </div>
           </div>
-          <div v-if="bubbleCfg.palette === 'custom'" class="form-group">
-            <label>自定义颜色（逗号分隔，CSS渐变）</label>
+          <!-- 自定义色输入（选中"自定义色"时显示） -->
+          <div v-if="bubbleCfg.palette === '__custom__'" class="form-group">
+            <label>自定义渐变（逗号分隔，CSS渐变）</label>
             <textarea
               class="input custom-gradients-input"
               v-model="bubbleCfg.customGradientsText"
@@ -182,36 +185,33 @@
 
         <!-- 金色传说说明 -->
         <div v-if="bubbleCfg.colorMode === 'legendary'" class="legendary-hint">
-          <span class="legendary-dot legendary"></span> 传奇词条 — 影片库中出现极少，琥珀金渐变
+          <span class="legendary-dot legendary"></span> 传奇 — 影片库中出现极少，琥珀金呼吸光效
           <br/>
-          <span class="legendary-dot rare"></span> 稀有词条 — 影片库中出现较少，紫灰渐变
+          <span class="legendary-dot epic"></span> 史诗 — 影片库中出现较少，紫色呼吸光效
           <br/>
-          <span class="legendary-dot common"></span> 普通词条 — 影片库中出现一般，灰蓝渐变
+          <span class="legendary-dot rare"></span> 稀有 — 影片库中出现一般，蓝色微光
           <br/>
-          <span class="legendary-dot popular"></span> 热门词条 — 影片库中出现频繁，低饱和灰渐变
+          <span class="legendary-dot common"></span> 普通 — 影片库中出现频繁，无光效
         </div>
 
         <div class="form-row" style="margin-top: 16px;">
           <div class="form-group">
-            <label>气泡大小（px）</label>
-            <div class="range-wrap">
-              <input class="input range-input" v-model.number="bubbleCfg.baseSize" type="range" min="10" max="32" step="1" />
-              <span class="range-val">{{ bubbleCfg.baseSize }}px</span>
-            </div>
+            <label>每页气泡数量</label>
+            <input class="input" v-model.number="bubbleCfg.bubbleCount" type="number" min="12" max="120" step="6" />
           </div>
           <div class="form-group">
-            <label>气体填充（%）</label>
-            <div class="range-wrap">
-              <input class="input range-input" v-model.number="bubbleCfg.fillPercent" type="range" min="40" max="160" step="5" />
-              <span class="range-val">{{ bubbleCfg.fillPercent }}%</span>
-            </div>
+            <label>气泡大小（px）</label>
+            <input class="input" v-model.number="bubbleCfg.baseSize" type="number" min="8" max="48" step="1" />
           </div>
         </div>
-        <div class="form-group">
-          <label>气泡间距（px）</label>
-          <div class="range-wrap">
-            <input class="input range-input" v-model.number="bubbleCfg.spacing" type="range" min="4" max="32" step="2" />
-            <span class="range-val">{{ bubbleCfg.spacing }}px</span>
+        <div class="form-row">
+          <div class="form-group">
+            <label>气体填充（%）</label>
+            <input class="input" v-model.number="bubbleCfg.fillPercent" type="number" min="30" max="200" step="5" />
+          </div>
+          <div class="form-group">
+            <label>气泡间距（px）</label>
+            <input class="input" v-model.number="bubbleCfg.spacing" type="number" min="0" max="48" step="2" />
           </div>
         </div>
         <div class="form-row">
@@ -248,19 +248,50 @@ export default {
       saving: false,
       bubbleCfg: {
         baseSize: 16, fillPercent: 50, spacing: 16,
-        colorMode: 'random', palette: 'monet',
+        colorMode: 'legendary', palette: 'monet',
         customGradients: [], customGradientsText: '',
-        goldLegend: true,
+        goldLegend: true, bubbleCount: 36,
       },
       palettes: [
-        { key: 'monet',   label: '莫奈',   preview: 'linear-gradient(135deg, #c4b5d8, #a5b4c8)' },
-        { key: 'sunset',  label: '夕阳',   preview: 'linear-gradient(135deg, #c89080, #d8a898)' },
-        { key: 'ocean',   label: '海洋',   preview: 'linear-gradient(135deg, #7aaec0, #8cbcc8)' },
-        { key: 'forest',  label: '森林',   preview: 'linear-gradient(135deg, #90b898, #a0c8a8)' },
-        { key: 'gold',    label: '金色',   preview: 'linear-gradient(135deg, #a88050, #c8a068)' },
-        { key: 'custom',  label: '自定义', preview: 'linear-gradient(135deg, #888, #aaa)' },
+        { key: 'monet',    label: '莫奈',    colors: ['linear-gradient(135deg, #c4b5d8, #a5b4c8)', 'linear-gradient(135deg, #d4c4e0, #b8c5d6)'] },
+        { key: 'sunset',   label: '夕阳',    colors: ['linear-gradient(135deg, #c89080, #d8a898)', 'linear-gradient(135deg, #c87868, #d8a088)'] },
+        { key: 'ocean',   label: '海洋',    colors: ['linear-gradient(135deg, #7aaec0, #8cbcc8)', 'linear-gradient(135deg, #88c0b0, #a0d0c0)'] },
+        { key: 'forest',   label: '森林',    colors: ['linear-gradient(135deg, #90b898, #a0c8a8)', 'linear-gradient(135deg, #7aa888, #8ab898)'] },
+        { key: 'gold',    label: '金色',    colors: ['linear-gradient(135deg, #a88050, #c8a068)', 'linear-gradient(135deg, #c89050, #d8b070)'] },
+        { key: 'anime',   label: '动漫',    colors: ['linear-gradient(135deg, #e8a0c8, #f0b8d8)', 'linear-gradient(135deg, #c0a0e0, #d0b0f0)'] },
+        { key: 'retro',    label: '复古',    colors: ['linear-gradient(135deg, #c89050, #d0a068)', 'linear-gradient(135deg, #8b7355, #a08060)'] },
+        { key: 'cyber',   label: '赛博',    colors: ['linear-gradient(135deg, #00c8ff, #0080ff)', 'linear-gradient(135deg, #8000ff, #c000ff)'] },
+        { key: 'pastel',  label: '马卡龙',  colors: ['linear-gradient(135deg, #f0b8c0, #f8d0d8)', 'linear-gradient(135deg, #b8d0f0, #c8e0f8)'] },
+        { key: 'nord',    label: 'Nord',    colors: ['linear-gradient(135deg, #88c0d0, #81a1c1)', 'linear-gradient(135deg, #a3be8c, #b48ead)'] },
+        { key: 'neon',    label: '霓虹',    colors: ['linear-gradient(135deg, #ff0080, #ff4000)', 'linear-gradient(135deg, #00ff80, #00c0ff)'] },
+        { key: 'earth',   label: '大地',    colors: ['linear-gradient(135deg, #8b7355, #a08060)', 'linear-gradient(135deg, #6b8e5a, #7a9e68)'] },
+        { key: 'candy',   label: '糖果',    colors: ['linear-gradient(135deg, #ffb8d0, #ffc8e0)', 'linear-gradient(135deg, #b8e0ff, #c8f0ff)'] },
       ],
     }
+  },
+  computed: {
+    // 下拉选中色系的颜色预览条
+    currentPalettePreview() {
+      if (this.bubbleCfg.palette === '__all__') {
+        // 完全随机：展示所有色系的混合渐变
+        return 'linear-gradient(90deg, #c4b5d8 0%, #e8a0c8 14%, #7aaec0 28%, #90b898 42%, #a88050 57%, #ff0080 71%, #00c8ff 85%, #ffb8d0 100%)'
+      }
+      if (this.bubbleCfg.palette === '__custom__') {
+        return 'linear-gradient(90deg, #888, #aaa)'
+      }
+      const p = this.palettes.find(p => p.key === this.bubbleCfg.palette)
+      if (!p) return 'linear-gradient(90deg, #888, #aaa)'
+      const [c1, c2] = p.colors
+      return `${c1}, ${c2}`
+    },
+  },
+  watch: {
+    'bubbleCfg.palette'(newVal) {
+      // 防止旧数据中已删除的 palette 值导致白屏
+      if (!this.palettes.find(p => p.key === newVal)) {
+        this.bubbleCfg.palette = 'monet'
+      }
+    },
   },
   async mounted() {
     try {
@@ -301,7 +332,7 @@ export default {
         if (saved) {
           const parsed = JSON.parse(saved)
           this.bubbleCfg = {
-            ...{ baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'random', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true },
+            ...{ baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'legendary', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true, bubbleCount: 36 },
             ...parsed,
           }
           if (parsed.customGradients) {
@@ -322,7 +353,7 @@ export default {
       localStorage.setItem('genres_bubble_cfg', JSON.stringify(this.bubbleCfg))
     },
     resetBubbleCfg() {
-      this.bubbleCfg = { baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'random', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true }
+      this.bubbleCfg = { baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'legendary', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true, bubbleCount: 36 }
       localStorage.removeItem('genres_bubble_cfg')
       this.$message.info('已恢复默认')
     }
@@ -368,30 +399,6 @@ export default {
 .form-group.checkbox input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
 .form-group.checkbox label { margin: 0; font-size: 14px; color: var(--text-primary); cursor: pointer; }
 
-.range-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.range-input {
-  flex: 1;
-  accent-color: var(--accent);
-  cursor: pointer;
-  height: 4px;
-  padding: 0;
-  border: none;
-  background: transparent;
-}
-
-.range-val {
-  min-width: 40px;
-  font-size: 13px;
-  color: var(--accent);
-  font-weight: 600;
-  text-align: right;
-}
-
 .color-mode-tabs {
   display: flex;
   gap: 8px;
@@ -421,41 +428,49 @@ export default {
   color: var(--accent);
 }
 
-.palette-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.palette-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+/* 色系下拉框 */
+.palette-select-wrap {
+  position: relative;
   border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.palette-select {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  background: var(--bg-card);
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
   cursor: pointer;
-  transition: var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.palette-btn.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(255,255,255,0.05);
-}
-
-.palette-btn:hover:not(.active) {
+.palette-select:focus {
+  outline: none;
   border-color: var(--accent);
 }
 
-.palette-preview {
-  width: 24px;
-  height: 14px;
-  border-radius: 4px;
-  flex-shrink: 0;
+.palette-select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--text-muted);
+  pointer-events: none;
+}
+
+/* 下拉选中色的颜色预览条 */
+.palette-color-bar {
+  height: 8px;
+  width: 100%;
 }
 
 .legendary-hint {
@@ -478,9 +493,9 @@ export default {
 }
 
 .legendary-dot.legendary { background: linear-gradient(135deg, #b88040, #d8a868); }
-.legendary-dot.rare { background: linear-gradient(135deg, #9880b8, #b0a0c8); }
-.legendary-dot.common { background: linear-gradient(135deg, #88a8c0, #a0b8c8); }
-.legendary-dot.popular { background: linear-gradient(135deg, #909090, #a0a0a0); }
+.legendary-dot.epic { background: linear-gradient(135deg, #9060c0, #7040a0); }
+.legendary-dot.rare { background: linear-gradient(135deg, #4890c8, #3070a8); }
+.legendary-dot.common { background: linear-gradient(135deg, #8090a0, #607080); }
 
 .custom-gradients-input {
   resize: vertical;
