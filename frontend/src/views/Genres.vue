@@ -90,8 +90,7 @@
               loading="lazy"
             />
           </div>
-          <div class="actress-name">{{ actress.name }}</div>
-          <div v-if="actress.video_count" class="actress-count">{{ actress.video_count }} 部</div>
+          <div class="actress-name">{{ actress.name_romaji || actress.name_kanji || 'Unknown' }}</div>
         </div>
       </div>
     </div>
@@ -671,8 +670,12 @@ export default {
       this.actressesLoading = true
       try {
         const resp = await api.listActresses(1, 200)
-        this.actresses = resp.data?.data || []
+        const raw = resp.data
+        console.log('[DEBUG] actresses resp.data keys:', Object.keys(raw), 'data length:', Array.isArray(raw.data) ? raw.data.length : 'N/A')
+        this.actresses = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
+        console.log('[DEBUG] actresses count:', this.actresses.length)
         this.displayedActresses = shuffle(this.actresses).slice(0, 60)
+        console.log('[DEBUG] displayedActresses count:', this.displayedActresses.length)
       } catch (e) {
         console.error('Load actresses failed:', e)
       } finally {
