@@ -398,17 +398,13 @@ export default {
     },
   },
   async mounted() {
-    console.log('[DEBUG] Genres mounted, activeTab:', this.activeTab)
     this.loadCfg()
-    console.log('[DEBUG] starting Promise.all')
-    // 并行加载：题材 + 演员 + 系列 + 统计数据
     await Promise.all([
       this.loadCategories(),
       this.loadActresses(),
       this.loadSeries(),
       this.cfg.goldLegend ? this.loadCategoryStats() : Promise.resolve(),
     ])
-    console.log('[DEBUG] Promise.all done, actresses:', this.actresses.length, 'series:', this.seriesList.length)
   },
   methods: {
     loadCfg() {
@@ -675,7 +671,7 @@ export default {
     async loadActresses() {
       this.actressesLoading = true
       try {
-        const resp = await api.listActresses(1, 200)
+        const resp = await api.listActresses(1, 100)
         const raw = resp.data
         console.log('[DEBUG] actresses resp.data keys:', Object.keys(raw), 'data length:', Array.isArray(raw.data) ? raw.data.length : 'N/A')
         this.actresses = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
