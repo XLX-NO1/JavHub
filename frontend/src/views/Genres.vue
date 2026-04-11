@@ -671,7 +671,7 @@ export default {
       this.actressesLoading = true
       try {
         const resp = await api.listActresses(1, 200)
-        this.actresses = resp.data?.data || resp.data || []
+        this.actresses = resp.data?.data || []
         this.displayedActresses = shuffle(this.actresses).slice(0, 60)
       } catch (e) {
         console.error('Load actresses failed:', e)
