@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from telegram.keyboards import search_result_keyboard
+from telegram_bot.keyboards import search_result_keyboard
 from modules.info_client import get_info_client
 from modules.openlist_client import get_openlist_client
 
