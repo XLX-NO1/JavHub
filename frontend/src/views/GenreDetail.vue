@@ -138,18 +138,18 @@ import api from '../api'
 import VideoModal from '../components/VideoModal.vue'
 
 const PALETTES = {
-  monet: ['linear-gradient(135deg, #e0c3fc, #8ec5fc)', 'linear-gradient(135deg, #fbc2eb, #a6c1ee)', 'linear-gradient(135deg, #d4fc79, #96e6a1)', 'linear-gradient(135deg, #a18cd1, #fbc2eb)', 'linear-gradient(135deg, #f093fb, #f5576c)', 'linear-gradient(135deg, #c2e9fb, #a1c4fd)', 'linear-gradient(135deg, #e0c3fc, #8ec5fc)', 'linear-gradient(135deg, #f5f7fa, #c3cfe2)'],
-  sunset: ['linear-gradient(135deg, #ff9a9e, #fecfef)', 'linear-gradient(135deg, #fa709a, #fee140)', 'linear-gradient(135deg, #ffecd2, #fcb69f)', 'linear-gradient(135deg, #ff7eb3, #fecfef)', 'linear-gradient(135deg, #fa709a, #fee140)', 'linear-gradient(135deg, #f97316, #fbbf24)', 'linear-gradient(135deg, #ff9a9e, #fecfef)', 'linear-gradient(135deg, #f97316, #fb923c)'],
-  ocean: ['linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #43e97b, #38f9d7)', 'linear-gradient(135deg, #84fab0, #8fd3f4)', 'linear-gradient(135deg, #0fd850, #00f2fe)', 'linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #89f7fe, #66a6ff)', 'linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #43e97b, #38f9d7)'],
-  forest: ['linear-gradient(135deg, #43e97b, #38f9d7)', 'linear-gradient(135deg, #56ab2f, #a8e063)', 'linear-gradient(135deg, #11998e, #38ef7d)', 'linear-gradient(135deg, #84fab0, #8fd3f4)', 'linear-gradient(135deg, #56ab2f, #a8e063)', 'linear-gradient(135deg, #11998e, #38ef7d)', 'linear-gradient(135deg, #43e97b, #38f9d7)', 'linear-gradient(135deg, #0ba360, #3cba92)'],
-  gold: ['linear-gradient(135deg, #f79711, #ffd200)', 'linear-gradient(135deg, #f5af19, #f12711)', 'linear-gradient(135deg, #f12711, #f5af19)', 'linear-gradient(135deg, #f79711, #ffd700)', 'linear-gradient(135deg, #f5af19, #f12711)', 'linear-gradient(135deg, #fcff00, #f79711)', 'linear-gradient(135deg, #ffd700, #f79711)', 'linear-gradient(135deg, #f5af19, #ffd700)'],
+  monet: ['linear-gradient(135deg, #c4b5d8, #a5b4c8)', 'linear-gradient(135deg, #d4c4e0, #b8c5d6)', 'linear-gradient(135deg, #c8d4c0, #a8b8a0)', 'linear-gradient(135deg, #d0c0dc, #b0a8c8)', 'linear-gradient(135deg, #e0d0d8, #c8b8c0)', 'linear-gradient(135deg, #c0cce0, #a8b8cc)', 'linear-gradient(135deg, #d8c8dc, #c0b0cc)', 'linear-gradient(135deg, #ccd4d8, #b8c4c8)'],
+  sunset: ['linear-gradient(135deg, #c89080, #d8a898)', 'linear-gradient(135deg, #c87868, #d8a088)', 'linear-gradient(135deg, #d0a880, #c8a078)', 'linear-gradient(135deg, #d09888, #c08070)', 'linear-gradient(135deg, #c88078, #d8a090)', 'linear-gradient(135deg, #d0a070, #c89060)', 'linear-gradient(135deg, #c89880, #d8b090)', 'linear-gradient(135deg, #d0a888, #c09070)'],
+  ocean: ['linear-gradient(135deg, #7aaec0, #8cbcc8)', 'linear-gradient(135deg, #88c0b0, #a0d0c0)', 'linear-gradient(135deg, #90c8c0, #a8d8d0)', 'linear-gradient(135deg, #78b0a8, #90c8c0)', 'linear-gradient(135deg, #7ab0c0, #8cc0cc)', 'linear-gradient(135deg, #80b8c8, #98c8d8)', 'linear-gradient(135deg, #88c0b8, #a0d0c8)', 'linear-gradient(135deg, #7ab0b8, #90c0c8)'],
+  forest: ['linear-gradient(135deg, #90b898, #a0c8a8)', 'linear-gradient(135deg, #7aa888, #8ab898)', 'linear-gradient(135deg, #88a880, #98b890)', 'linear-gradient(135deg, #98b8a8, #a8c8b8)', 'linear-gradient(135deg, #80a888, #90b898)', 'linear-gradient(135deg, #88a090, #98b0a0)', 'linear-gradient(135deg, #90b898, #a0c8a8)', 'linear-gradient(135deg, #78a080, #88b090)'],
+  gold: ['linear-gradient(135deg, #a88050, #c8a068)', 'linear-gradient(135deg, #c89050, #d8b070)', 'linear-gradient(135deg, #b88840, #c8a060)', 'linear-gradient(135deg, #a88060, #b89870)', 'linear-gradient(135deg, #c08050, #d0a068)', 'linear-gradient(135deg, #d0b080, #c8a068)', 'linear-gradient(135deg, #b89058, #c8a870)', 'linear-gradient(135deg, #a87848, #c09860)'],
 }
 
 const RARITY_GRADIENTS = {
-  legendary: ['linear-gradient(135deg, #f79711, #ffd700)', 'linear-gradient(135deg, #f5af19, #f12711)', 'linear-gradient(135deg, #fcff00, #f79711)', 'linear-gradient(135deg, #ffd700, #f79711)'],
-  rare: ['linear-gradient(135deg, #e040fb, #7c4dff)', 'linear-gradient(135deg, #7c4dff, #e040fb)', 'linear-gradient(135deg, #f48fb1, #e040fb)'],
-  common: ['linear-gradient(135deg, #4facfe, #00f2fe)', 'linear-gradient(135deg, #43e97b, #38f9d7)', 'linear-gradient(135deg, #4facfe, #00f2fe)'],
-  popular: ['linear-gradient(135deg, #cfd9df, #e2ebf0)', 'linear-gradient(135deg, #bdc3c7, #2c3e50)', 'linear-gradient(135deg, #bdc3c7, #2c3e50)'],
+  legendary: ['linear-gradient(135deg, #b88040, #d8a868)', 'linear-gradient(135deg, #c89050, #d8b070)', 'linear-gradient(135deg, #a87838, #c09058)', 'linear-gradient(135deg, #b88848, #d0a068)'],
+  rare: ['linear-gradient(135deg, #9880b8, #b0a0c8)', 'linear-gradient(135deg, #b090c8, #a8a0c0)', 'linear-gradient(135deg, #c0a8d0, #b8b0c0)'],
+  common: ['linear-gradient(135deg, #88a8c0, #a0b8c8)', 'linear-gradient(135deg, #90c0b0, #a8d0c0)', 'linear-gradient(135deg, #88b8c8, #98c0d0)'],
+  popular: ['linear-gradient(135deg, #909090, #a0a0a0)', 'linear-gradient(135deg, #808888, #909898)', 'linear-gradient(135deg, #888898, #9898a8)'],
 }
 
 function hashCode(str) {

@@ -182,13 +182,13 @@
 
         <!-- 金色传说说明 -->
         <div v-if="bubbleCfg.colorMode === 'legendary'" class="legendary-hint">
-          <span class="legendary-dot legendary"></span> 传奇词条 — 影片库中出现极少，金色渐变
+          <span class="legendary-dot legendary"></span> 传奇词条 — 影片库中出现极少，琥珀金渐变
           <br/>
-          <span class="legendary-dot rare"></span> 稀有词条 — 影片库中出现较少，紫色渐变
+          <span class="legendary-dot rare"></span> 稀有词条 — 影片库中出现较少，紫灰渐变
           <br/>
-          <span class="legendary-dot common"></span> 普通词条 — 影片库中出现一般，蓝色渐变
+          <span class="legendary-dot common"></span> 普通词条 — 影片库中出现一般，灰蓝渐变
           <br/>
-          <span class="legendary-dot popular"></span> 热门词条 — 影片库中出现频繁，灰色渐变
+          <span class="legendary-dot popular"></span> 热门词条 — 影片库中出现频繁，低饱和灰渐变
         </div>
 
         <div class="form-row" style="margin-top: 16px;">
@@ -253,12 +253,12 @@ export default {
         goldLegend: true,
       },
       palettes: [
-        { key: 'monet',   label: '莫奈',   preview: 'linear-gradient(135deg, #e0c3fc, #8ec5fc)' },
-        { key: 'sunset',  label: '夕阳',   preview: 'linear-gradient(135deg, #ff9a9e, #fecfef)' },
-        { key: 'ocean',   label: '海洋',   preview: 'linear-gradient(135deg, #4facfe, #00f2fe)' },
-        { key: 'forest',  label: '森林',   preview: 'linear-gradient(135deg, #43e97b, #38f9d7)' },
-        { key: 'gold',    label: '金色',   preview: 'linear-gradient(135deg, #f79711, #ffd700)' },
-        { key: 'custom',  label: '自定义', preview: 'linear-gradient(135deg, #888, #fff)' },
+        { key: 'monet',   label: '莫奈',   preview: 'linear-gradient(135deg, #c4b5d8, #a5b4c8)' },
+        { key: 'sunset',  label: '夕阳',   preview: 'linear-gradient(135deg, #c89080, #d8a898)' },
+        { key: 'ocean',   label: '海洋',   preview: 'linear-gradient(135deg, #7aaec0, #8cbcc8)' },
+        { key: 'forest',  label: '森林',   preview: 'linear-gradient(135deg, #90b898, #a0c8a8)' },
+        { key: 'gold',    label: '金色',   preview: 'linear-gradient(135deg, #a88050, #c8a068)' },
+        { key: 'custom',  label: '自定义', preview: 'linear-gradient(135deg, #888, #aaa)' },
       ],
     }
   },
@@ -477,10 +477,10 @@ export default {
   vertical-align: middle;
 }
 
-.legendary-dot.legendary { background: linear-gradient(135deg, #f79711, #ffd700); }
-.legendary-dot.rare { background: linear-gradient(135deg, #e040fb, #7c4dff); }
-.legendary-dot.common { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.legendary-dot.popular { background: linear-gradient(135deg, #cfd9df, #e2ebf0); }
+.legendary-dot.legendary { background: linear-gradient(135deg, #b88040, #d8a868); }
+.legendary-dot.rare { background: linear-gradient(135deg, #9880b8, #b0a0c8); }
+.legendary-dot.common { background: linear-gradient(135deg, #88a8c0, #a0b8c8); }
+.legendary-dot.popular { background: linear-gradient(135deg, #909090, #a0a0a0); }
 
 .custom-gradients-input {
   resize: vertical;
