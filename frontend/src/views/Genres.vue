@@ -299,39 +299,7 @@ export default {
         })
       })
 
-      // Legendary glow: pulsing gold box-shadow + shimmer sweep
-      if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
-        bubbles.forEach((bubble, i) => {
-          const rarity = this.rarityMap[bubble.dataset.id] || 'common'
-          if (rarity === 'legendary') {
-            // Pulsing outer glow
-            gsap.to(bubble, {
-              boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
-              duration: 1.6,
-              repeat: -1,
-              yoyo: true,
-              ease: 'sine.inOut',
-              delay: i * 0.1,
-            })
-            // Shimmer sweep via GSAP background position
-            gsap.fromTo(bubble,
-              { '--shimmer-pos': '-100%' },
-              { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
-            )
-          } else if (rarity === 'rare') {
-            // Subtle purple pulse
-            gsap.to(bubble, {
-              boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
-              duration: 2.2,
-              repeat: -1,
-              yoyo: true,
-              ease: 'sine.inOut',
-              delay: i * 0.12,
-            })
-          }
-        })
-      }
-
+      // No legendary pulse animations — glow is hover-only via handleMouseMove
       cloud.addEventListener('mousemove', this.handleMouseMove)
       cloud.addEventListener('mouseleave', this.handleMouseLeave)
     },
@@ -342,6 +310,7 @@ export default {
       const mouseY = e.clientY
       const bubbles = cloud.querySelectorAll('.bubble')
 
+      // Proximity scale for all nearby bubbles
       const scales = new Map()
       const hoveredBubbles = []
       bubbles.forEach(bubble => {
@@ -358,7 +327,7 @@ export default {
         }
       })
 
-      // Collision detection
+      // Collision detection for z-index layering
       const overlapped = new Set()
       for (let i = 0; i < hoveredBubbles.length; i++) {
         for (let j = i + 1; j < hoveredBubbles.length; j++) {
@@ -376,10 +345,44 @@ export default {
       bubbles.forEach(bubble => {
         const scale = scales.get(bubble)
         const isOverlapped = overlapped.has(bubble)
-        if (scale > 1) {
-          gsap.to(bubble, { scale, opacity: 1, zIndex: isOverlapped ? ++maxZ : 50, duration: 0.15, ease: 'back.out(1.2)', overwrite: 'auto' })
+        const isHovered = hoveredBubbles.includes(bubble)
+        const rarity = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
+          ? (this.rarityMap[bubble.dataset.id] || 'common')
+          : null
+
+        if (isHovered && scale > 1) {
+          // Proximity scale + hover glow
+          let extraGlow = ''
+          if (rarity === 'legendary') {
+            extraGlow = ', 0 0 24px 8px rgba(255, 185, 0, 0.88), 0 0 60px 18px rgba(255, 140, 0, 0.55)'
+          } else if (rarity === 'rare') {
+            extraGlow = ', 0 0 14px 4px rgba(170, 100, 255, 0.8), 0 0 35px 10px rgba(140, 70, 220, 0.5)'
+          }
+          gsap.to(bubble, {
+            scale,
+            opacity: 1,
+            zIndex: isOverlapped ? ++maxZ : 50,
+            boxShadow: `0 4px 20px rgba(0,0,0,0.3)${extraGlow}`,
+            duration: 0.12,
+            ease: 'back.out(1.2)',
+            overwrite: 'auto',
+          })
         } else {
-          gsap.to(bubble, { scale: 1, opacity: 0.88, zIndex: 1, duration: 0.2, ease: 'power3.out', overwrite: 'auto' })
+          // Reset to base state
+          const baseShadow = rarity === 'legendary'
+            ? '0 0 8px 3px rgba(255, 185, 0, 0.92), 0 0 22px 6px rgba(255, 150, 0, 0.68), 0 0 50px 14px rgba(255, 110, 0, 0.38)'
+            : rarity === 'rare'
+            ? '0 0 6px 2px rgba(170, 100, 255, 0.82), 0 0 16px 4px rgba(148, 76, 220, 0.55)'
+            : '0 4px 20px rgba(0,0,0,0.3)'
+          gsap.to(bubble, {
+            scale: 1,
+            opacity: 0.88,
+            zIndex: 1,
+            boxShadow: baseShadow,
+            duration: 0.18,
+            ease: 'power3.out',
+            overwrite: 'auto',
+          })
         }
       })
       this.updateBubbleRects(bubbles)
@@ -401,31 +404,22 @@ export default {
       this.$nextTick(() => {
         const newBubbles = this.$refs.tagCloudRef?.querySelectorAll('.bubble')
         if (!newBubbles?.length) return
+        // Explosion burst from center: each bubble flies outward from the grid center
+        // with random direction, overshoot scale (1.5 → 1), then settle
         gsap.fromTo(newBubbles,
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 0.88, duration: 0.3, stagger: 0.006, ease: 'back.out(1.7)' }
+          { scale: 0, opacity: 0, rotation: 0 },
+          {
+            scale: 1,
+            opacity: 0.88,
+            duration: 0.55,
+            stagger: {
+              each: 0.012,
+              from: 'center',
+              grid: 'auto',
+            },
+            ease: 'back.out(1.7)',
+          }
         )
-        // Re-apply legendary glow animations after reshuffle
-        if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
-          newBubbles.forEach((bubble, i) => {
-            const rarity = this.rarityMap[bubble.dataset.id] || 'common'
-            if (rarity === 'legendary') {
-              gsap.to(bubble, {
-                boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
-                duration: 1.6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.1,
-              })
-              gsap.fromTo(bubble,
-                { '--shimmer-pos': '-100%' },
-                { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
-              )
-            } else if (rarity === 'rare') {
-              gsap.to(bubble, {
-                boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
-                duration: 2.2, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.12,
-              })
-            }
-          })
-        }
       })
     },
     goGenre(tag) {

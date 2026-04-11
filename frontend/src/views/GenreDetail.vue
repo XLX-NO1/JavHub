@@ -350,28 +350,6 @@ export default {
         })
       })
 
-      // Legendary glow animations
-      if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
-        bubbles.forEach((bubble, i) => {
-          const rarity = this.rarityMap[bubble.dataset.id] || 'common'
-          if (rarity === 'legendary') {
-            gsap.to(bubble, {
-              boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
-              duration: 1.6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.1,
-            })
-            gsap.fromTo(bubble,
-              { '--shimmer-pos': '-100%' },
-              { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
-            )
-          } else if (rarity === 'rare') {
-            gsap.to(bubble, {
-              boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
-              duration: 2.2, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.12,
-            })
-          }
-        })
-      }
-
       cloud.addEventListener('mousemove', this.handleMouseMove)
       cloud.addEventListener('mouseleave', this.handleMouseLeave)
     },
@@ -389,7 +367,6 @@ export default {
       const mouseY = e.clientY
       const bubbles = cloud.querySelectorAll('.bubble')
 
-      // Phase 1: determine scales
       const scales = new Map()
       const hoveredBubbles = []
       bubbles.forEach(bubble => {
@@ -407,62 +384,57 @@ export default {
         }
       })
 
-      // Phase 2: collision detection
       const overlapped = new Set()
       for (let i = 0; i < hoveredBubbles.length; i++) {
         for (let j = i + 1; j < hoveredBubbles.length; j++) {
-          const a = hoveredBubbles[i]
-          const b = hoveredBubbles[j]
-          const ra = a.getBoundingClientRect()
-          const rb = b.getBoundingClientRect()
-          const sa = scales.get(a)
-          const sb = scales.get(b)
-
-          // Scaled rect
-          const raS = {
-            left: ra.left - (sa - 1) * ra.width / 2,
-            right: ra.right + (sa - 1) * ra.width / 2,
-            top: ra.top - (sa - 1) * ra.height / 2,
-            bottom: ra.bottom + (sa - 1) * ra.height / 2,
-          }
-          const rbS = {
-            left: rb.left - (sb - 1) * rb.width / 2,
-            right: rb.right + (sb - 1) * rb.width / 2,
-            top: rb.top - (sb - 1) * rb.height / 2,
-            bottom: rb.bottom + (sb - 1) * rb.height / 2,
-          }
-
-          const intersects = !(raS.right < rbS.left || raS.left > rbS.right ||
-                               raS.bottom < rbS.top || raS.top > rbS.bottom)
-          if (intersects) {
-            overlapped.add(a)
-            overlapped.add(b)
-          }
+          const a = hoveredBubbles[i], b = hoveredBubbles[j]
+          const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect()
+          const sa = scales.get(a), sb = scales.get(b)
+          const raS = { left: ra.left - (sa-1)*ra.width/2, right: ra.right + (sa-1)*ra.width/2, top: ra.top - (sa-1)*ra.height/2, bottom: ra.bottom + (sa-1)*ra.height/2 }
+          const rbS = { left: rb.left - (sb-1)*rb.width/2, right: rb.right + (sb-1)*rb.width/2, top: rb.top - (sb-1)*rb.height/2, bottom: rb.bottom + (sb-1)*rb.height/2 }
+          const intersects = !(raS.right < rbS.left || raS.left > rbS.right || raS.bottom < rbS.top || raS.top > rbS.bottom)
+          if (intersects) { overlapped.add(a); overlapped.add(b) }
         }
       }
 
-      // Phase 3: animate with z-index layering
       let maxZ = 100
       bubbles.forEach(bubble => {
         const scale = scales.get(bubble)
         const isOverlapped = overlapped.has(bubble)
+        const isHovered = hoveredBubbles.includes(bubble)
         const isActive = bubble.classList.contains('active')
+        const rarity = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
+          ? (this.rarityMap[bubble.dataset.id] || 'common')
+          : null
 
-        if (scale > 1) {
+        if (isHovered && scale > 1) {
+          let extraGlow = ''
+          if (rarity === 'legendary') {
+            extraGlow = ', 0 0 24px 8px rgba(255, 185, 0, 0.88), 0 0 60px 18px rgba(255, 140, 0, 0.55)'
+          } else if (rarity === 'rare') {
+            extraGlow = ', 0 0 14px 4px rgba(170, 100, 255, 0.8), 0 0 35px 10px rgba(140, 70, 220, 0.5)'
+          }
           gsap.to(bubble, {
             scale,
             opacity: 1,
             zIndex: isOverlapped ? ++maxZ : 50,
-            duration: 0.15,
+            boxShadow: `0 4px 20px rgba(0,0,0,0.3)${extraGlow}`,
+            duration: 0.12,
             ease: 'back.out(1.2)',
             overwrite: 'auto',
           })
         } else {
+          const baseShadow = rarity === 'legendary'
+            ? '0 0 8px 3px rgba(255, 185, 0, 0.92), 0 0 22px 6px rgba(255, 150, 0, 0.68), 0 0 50px 14px rgba(255, 110, 0, 0.38)'
+            : rarity === 'rare'
+            ? '0 0 6px 2px rgba(170, 100, 255, 0.82), 0 0 16px 4px rgba(148, 76, 220, 0.55)'
+            : '0 4px 20px rgba(0,0,0,0.3)'
           gsap.to(bubble, {
             scale: 1,
             opacity: isActive ? 1 : 0.88,
             zIndex: 1,
-            duration: 0.2,
+            boxShadow: baseShadow,
+            duration: 0.18,
             ease: 'power3.out',
             overwrite: 'auto',
           })
@@ -522,35 +494,15 @@ export default {
         const newBubbles = this.$refs.tagCloudRef?.querySelectorAll('.bubble')
         if (!newBubbles?.length) return
         gsap.fromTo(newBubbles,
-          { scale: 0, opacity: 0 },
+          { scale: 0, opacity: 0, rotation: 0 },
           {
             scale: 1,
             opacity: 0.88,
-            duration: 0.3,
-            stagger: 0.006,
+            duration: 0.55,
+            stagger: { each: 0.012, from: 'center', grid: 'auto' },
             ease: 'back.out(1.7)',
           }
         )
-        if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
-          newBubbles.forEach((bubble, i) => {
-            const rarity = this.rarityMap[bubble.dataset.id] || 'common'
-            if (rarity === 'legendary') {
-              gsap.to(bubble, {
-                boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
-                duration: 1.6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.1,
-              })
-              gsap.fromTo(bubble,
-                { '--shimmer-pos': '-100%' },
-                { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
-              )
-            } else if (rarity === 'rare') {
-              gsap.to(bubble, {
-                boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
-                duration: 2.2, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.12,
-              })
-            }
-          })
-        }
       })
     },
     async openModal(video) {
