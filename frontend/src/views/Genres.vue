@@ -1,11 +1,24 @@
 <template>
   <div class="genres-page">
+    <!-- 顶部 Tab 栏 -->
     <div class="genres-hero">
-      <h1 class="hero-title">题材发现</h1>
+      <h1 class="hero-title">个性推荐</h1>
       <p class="hero-subtitle">随机浏览，发现更多内容</p>
+      <div class="tab-bar">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          class="tab-btn"
+          :class="{ active: activeTab === tab.key }"
+          @click="switchTab(tab.key)"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
     </div>
 
-    <div class="tag-cloud-wrap" ref="cloudRef">
+    <!-- 题材 Tab：气泡云 -->
+    <div v-if="activeTab === 'genre'" class="tag-cloud-wrap" ref="cloudRef">
       <div class="cloud-header">
         <span class="cloud-hint">共 {{ categories.length }} 个题材</span>
         <button class="shuffle-btn" @click="reshuffle" :disabled="loading">
@@ -39,6 +52,79 @@
           @click="goGenre(tag)"
         >
           {{ tag.name_en || tag.name_ja || tag.name }}
+        </div>
+      </div>
+    </div>
+
+    <!-- 演员 Tab：头像卡片 -->
+    <div v-if="activeTab === 'actress'" class="actress-tab">
+      <div class="actress-header">
+        <span class="cloud-hint">共 {{ actresses.length }} 位演员</span>
+        <button class="shuffle-btn" @click="reshuffleActresses" :disabled="actressesLoading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          换一批
+        </button>
+      </div>
+
+      <div v-if="actressesLoading" class="loading-wrap">
+        <div class="spinner-large"></div>
+        <p>加载演员中...</p>
+      </div>
+
+      <div v-else class="actress-grid">
+        <div
+          v-for="actress in displayedActresses"
+          :key="actress.id"
+          class="actress-card"
+          @click="goActress(actress)"
+        >
+          <div class="actress-avatar">
+            <img
+              :src="actressAvatar(actress)"
+              :alt="actress.name"
+              @error="handleActressImgError"
+              loading="lazy"
+            />
+          </div>
+          <div class="actress-name">{{ actress.name }}</div>
+          <div v-if="actress.video_count" class="actress-count">{{ actress.video_count }} 部</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 系列 Tab：系列气泡云 -->
+    <div v-if="activeTab === 'series'" class="tag-cloud-wrap">
+      <div class="cloud-header">
+        <span class="cloud-hint">共 {{ seriesList.length }} 个系列</span>
+        <button class="shuffle-btn" @click="reshuffleSeries" :disabled="seriesLoading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          换一批
+        </button>
+      </div>
+
+      <div v-if="seriesLoading" class="loading-wrap">
+        <div class="spinner-large"></div>
+        <p>加载系列中...</p>
+      </div>
+
+      <div v-else ref="seriesCloudRef" class="tag-cloud" :style="cloudStyle">
+        <div
+          v-for="item in displayedSeries"
+          :key="item.id"
+          class="bubble"
+          :class="legendaryBubbleClass(item)"
+          :style="bubbleStyle(item)"
+          @click="goSeries(item)"
+        >
+          {{ item.name }}
         </div>
       </div>
     </div>
@@ -249,6 +335,13 @@ function shuffle(arr) {
 }
 
 const LS_KEY = 'genres_bubble_cfg'
+
+const TABS = [
+  { key: 'genre',    label: '题材' },
+  { key: 'actress', label: '演员' },
+  { key: 'series',   label: '系列' },
+]
+
 const DEFAULT_CFG = {
   baseSize: 16,
   fillPercent: 50,
@@ -264,15 +357,25 @@ export default {
   name: 'Genres',
   data() {
     return {
+      activeTab: 'genre',
+      tabs: TABS,
       categories: [],
       shuffledTags: [],
-      displayedTags: [],   // 当前页显示的气泡（由 bubbleCount 控制）
+      displayedTags: [],
       loading: false,
       statsLoading: false,
       cfg: { ...DEFAULT_CFG },
-      categoryStats: {},  // { categoryId: video_count }
-      rarityMap: {},      // { categoryId: 'legendary'|'epic'|'rare'|'common' }
+      categoryStats: {},
+      rarityMap: {},
       bubbleRects: new Map(),
+      // 演员
+      actresses: [],
+      displayedActresses: [],
+      actressesLoading: false,
+      // 系列
+      seriesList: [],
+      displayedSeries: [],
+      seriesLoading: false,
     }
   },
   computed: {
@@ -295,9 +398,11 @@ export default {
   },
   async mounted() {
     this.loadCfg()
-    // 并行加载：题材列表 + 统计数据一起拉，stats 由全局缓存加速
+    // 并行加载：题材 + 演员 + 系列 + 统计数据
     await Promise.all([
       this.loadCategories(),
+      this.loadActresses(),
+      this.loadSeries(),
       this.cfg.goldLegend ? this.loadCategoryStats() : Promise.resolve(),
     ])
   },
@@ -550,6 +655,55 @@ export default {
     goGenre(tag) {
       this.$router.push({ name: 'GenreDetail', params: { categoryId: tag.id } })
     },
+    switchTab(tab) {
+      this.activeTab = tab
+    },
+    actressAvatar(actress) {
+      // 演员头像：优先用 thumbnail_url，否则用名字生成代理头像
+      if (actress.thumbnail_url) return actress.thumbnail_url
+      const name = encodeURIComponent(actress.name || '')
+      return `/api/actors/avatar/${name}`
+    },
+    handleActressImgError(e) {
+      e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect fill="%231a1a2e" width="120" height="120"/><circle cx="60" cy="48" r="24" fill="%23333"/><ellipse cx="60" cy="100" rx="36" ry="28" fill="%23333"/></svg>'
+    },
+    async loadActresses() {
+      this.actressesLoading = true
+      try {
+        const resp = await api.listActresses(1, 200)
+        this.actresses = resp.data?.data || resp.data || []
+        this.displayedActresses = shuffle(this.actresses).slice(0, 60)
+      } catch (e) {
+        console.error('Load actresses failed:', e)
+      } finally {
+        this.actressesLoading = false
+      }
+    },
+    async loadSeries() {
+      this.seriesLoading = true
+      try {
+        const resp = await api.listSeries()
+        this.seriesList = resp.data?.data || resp.data || []
+        this.displayedSeries = shuffle(this.seriesList).slice(0, 60)
+      } catch (e) {
+        console.error('Load series failed:', e)
+      } finally {
+        this.seriesLoading = false
+      }
+    },
+    reshuffleActresses() {
+      this.displayedActresses = shuffle(this.actresses).slice(0, 60)
+    },
+    reshuffleSeries() {
+      this.displayedSeries = shuffle(this.seriesList).slice(0, 60)
+    },
+    goActress(actress) {
+      this.$router.push({ name: 'Actress', params: { actressId: actress.id } })
+    },
+    goSeries(item) {
+      // 系列点击 → 搜索结果页，带 series 参数
+      this.$router.push({ path: '/search', query: { series: item.name } })
+    },
     legendaryBubbleClass(tag) {
       if (this.cfg.colorMode !== 'legendary' || !this.cfg.goldLegend) return ''
       const rarity = this.rarityMap[tag.id] || 'common'
@@ -582,6 +736,25 @@ export default {
 .shuffle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .loading-wrap { text-align: center; padding: 60px; color: var(--text-secondary); }
 .spinner-large { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+
+/* Tab Bar */
+.tab-bar { display: flex; gap: 4px; justify-content: center; margin-top: 24px; }
+.tab-btn { padding: 8px 24px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: var(--transition); }
+.tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* 演员卡片 */
+.actress-tab { padding: 20px; max-width: 1200px; margin: 0 auto; }
+.actress-header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 16px; }
+.actress-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; }
+.actress-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; transition: var(--transition); text-align: center; }
+.actress-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+.actress-avatar { width: 100%; aspect-ratio: 1; overflow: hidden; background: var(--bg-secondary); }
+.actress-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform 0.3s ease; }
+.actress-card:hover .actress-avatar img { transform: scale(1.05); }
+.actress-name { font-size: 13px; font-weight: 600; color: var(--text-primary); padding: 8px 8px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.actress-count { font-size: 11px; color: var(--text-muted); padding: 0 8px 8px; }
+
 .tag-cloud { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; padding: 10px 4px; background: var(--bg-primary); border-radius: 16px; }
 .bubble {
   border-radius: 50px;
