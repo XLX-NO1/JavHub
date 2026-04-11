@@ -410,6 +410,61 @@ export const THEMES = {
       '--nav-active-bg': 'rgba(232, 121, 160, 0.20)',
     },
   },
+
+  infuse: {
+    label: '影院沉浸',
+    labelEn: 'Cinematic',
+    icon: '🎬',
+    vars: {
+      // 极深黑背景 + 微妙暖调
+      '--bg-primary': '#0A0A0A',
+      '--bg-secondary': '#111111',
+      '--bg-card': '#181818',
+      '--bg-card-hover': '#202020',
+      // 暖金强调色
+      '--accent': '#D4A843',
+      '--accent-light': '#E8C86B',
+      '--accent-glow': 'rgba(212, 168, 67, 0.22)',
+      // 文字偏暖白
+      '--text-primary': '#F0EDE8',
+      '--text-secondary': '#9A9590',
+      '--text-muted': '#5A5550',
+      '--border': '#2A2828',
+      '--border-light': '#333030',
+      // 极柔和阴影
+      '--shadow-card': '0 4px 24px rgba(0, 0, 0, 0.70)',
+      '--shadow-hover': '0 12px 48px rgba(0, 0, 0, 0.85)',
+      // 衬线体，影院感
+      '--font-body': "'Playfair Display', 'Noto Serif SC', 'Source Han Serif CN', Georgia, 'Times New Roman', serif",
+      '--font-mono': "'Courier New', 'SF Mono', monospace",
+      '--white-0': 'rgba(255,255,255,0)',
+      '--white-06': 'rgba(255,255,255,0.05)',
+      '--white-10': 'rgba(255,255,255,0.08)',
+      '--white-15': 'rgba(255,255,255,0.10)',
+      '--white-20': 'rgba(255,255,255,0.12)',
+      '--black-10': 'rgba(0,0,0,0)',
+      '--black-20': 'rgba(0,0,0,0.20)',
+      '--black-40': 'rgba(0,0,0,0.50)',
+      '--black-60': 'rgba(0,0,0,0.70)',
+      '--black-80': 'rgba(0,0,0,0.88)',
+      '--badge-success-bg': 'rgba(212, 168, 67, 0.15)',
+      '--badge-success-border': 'rgba(212, 168, 67, 0.25)',
+      '--badge-success-text': '#D4A843',
+      '--badge-warning-bg': 'rgba(200, 150, 80, 0.15)',
+      '--badge-warning-border': 'rgba(200, 150, 80, 0.25)',
+      '--badge-warning-text': '#C89650',
+      '--badge-error-bg': 'rgba(180, 80, 60, 0.15)',
+      '--badge-error-border': 'rgba(180, 80, 60, 0.25)',
+      '--badge-error-text': '#C05040',
+      '--badge-info-bg': 'rgba(150, 130, 180, 0.15)',
+      '--badge-info-border': 'rgba(150, 130, 180, 0.25)',
+      '--badge-info-text': '#9682B4',
+      '--badge-pending-bg': 'rgba(100, 90, 80, 0.15)',
+      '--badge-pending-border': 'rgba(100, 90, 80, 0.25)',
+      '--badge-pending-text': '#9A9590',
+      '--nav-active-bg': 'rgba(212, 168, 67, 0.12)',
+    },
+  },
 }
 
 export const THEME_KEYS = Object.keys(THEMES)
