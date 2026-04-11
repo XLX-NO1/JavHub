@@ -30,6 +30,15 @@ dist/
 *.png
 截屏*
 
+# Test files
+frontend/test-*.cjs
+
+# Avatar images (may contain copyrighted content)
+backend/data/avatars/
+
+# Docs (internal design specs)
+docs/
+
 # Logs
 *.log
 logs/
