@@ -7,17 +7,30 @@
     </div>
 
     <!-- 标签气泡云 -->
-    <div class="tag-cloud-wrap">
+    <div class="tag-cloud-wrap" ref="cloudRef">
+      <div class="cloud-header">
+        <span class="cloud-hint">共 {{ categories.length }} 个题材</span>
+        <button class="shuffle-btn" @click="reshuffle" :disabled="loading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          换一批
+        </button>
+      </div>
+
       <div v-if="loading" class="loading-wrap">
         <div class="spinner-large"></div>
         <p>加载题材中...</p>
       </div>
 
-      <div v-else class="tag-cloud">
+      <div v-else ref="tagCloudRef" class="tag-cloud">
         <div
           v-for="tag in shuffledTags"
           :key="tag.id"
           class="bubble"
+          :data-id="tag.id"
           :style="bubbleStyle(tag)"
           @click="goGenre(tag)"
         >
@@ -29,6 +42,7 @@
 </template>
 
 <script>
+import gsap from 'gsap'
 import api from '../api'
 
 const BUBBLE_COLORS = [
@@ -80,12 +94,9 @@ export default {
     bubbleStyle(tag) {
       const idx = hashCode(tag.name_en || tag.name_ja || tag.name) % BUBBLE_COLORS.length
       const baseSize = 16 + (hashCode((tag.name_en || tag.name_ja || tag.name) + 'size') % 14)
-      const size = `${baseSize}px`
       return {
         background: BUBBLE_COLORS[idx],
-        fontSize: size,
-        '--bubble-delay': `${(hashCode((tag.name_en || tag.name_ja || tag.name) + 'delay') % 20) * 0.1}s`,
-        '--bubble-x': `${(hashCode((tag.name_en || tag.name_ja || tag.name) + 'x') % 60 - 30)}px`,
+        fontSize: `${baseSize}px`,
       }
     },
     async loadCategories() {
@@ -99,10 +110,129 @@ export default {
         this.categories = []
       } finally {
         this.loading = false
+        this.$nextTick(() => this.initGsap())
       }
+    },
+    initGsap() {
+      const cloud = this.$refs.tagCloudRef
+      if (!cloud) return
+      const bubbles = cloud.querySelectorAll('.bubble')
+
+      // entrance animation
+      gsap.fromTo(bubbles,
+        { scale: 0, opacity: 0 },
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.6,
+          stagger: { each: 0.015, grid: 'auto', from: 'random' },
+          ease: 'back.out(1.7)',
+        }
+      )
+
+      // subtle float for each bubble
+      bubbles.forEach((bubble, i) => {
+        gsap.to(bubble, {
+          y: -8,
+          duration: 1.5 + (i % 5) * 0.3,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: i * 0.05,
+        })
+      })
+
+      // proximity magnification
+      cloud.addEventListener('mousemove', this.handleMouseMove)
+      cloud.addEventListener('mouseleave', this.handleMouseLeave)
+    },
+    handleMouseMove(e) {
+      const cloud = this.$refs.tagCloudRef
+      if (!cloud) return
+      const rect = cloud.getBoundingClientRect()
+      const mouseX = e.clientX
+      const mouseY = e.clientY
+
+      const bubbles = cloud.querySelectorAll('.bubble')
+      bubbles.forEach(bubble => {
+        const r = bubble.getBoundingClientRect()
+        const centerX = r.left + r.width / 2
+        const centerY = r.top + r.height / 2
+        const dist = Math.hypot(mouseX - centerX, mouseY - centerY)
+        const maxDist = 200
+
+        if (dist < maxDist) {
+          const scale = 1 + (1 - dist / maxDist) * 0.6
+          gsap.to(bubble, {
+            scale,
+            opacity: 1,
+            duration: 0.4,
+            ease: 'elastic.out(1, 0.6)',
+            overwrite: 'auto',
+          })
+        } else {
+          gsap.to(bubble, {
+            scale: 1,
+            opacity: 0.88,
+            duration: 0.5,
+            ease: 'elastic.out(1, 0.6)',
+            overwrite: 'auto',
+          })
+        }
+      })
+    },
+    handleMouseLeave() {
+      const cloud = this.$refs.tagCloudRef
+      if (!cloud) return
+      const bubbles = cloud.querySelectorAll('.bubble')
+      gsap.to(bubbles, {
+        scale: 1,
+        opacity: 0.88,
+        duration: 0.6,
+        ease: 'elastic.out(1, 0.6)',
+        stagger: 0.01,
+      })
+    },
+    reshuffle() {
+      const cloud = this.$refs.tagCloudRef
+      if (!cloud) {
+        this.shuffledTags = shuffle(this.categories)
+        return
+      }
+      const bubbles = cloud.querySelectorAll('.bubble')
+      gsap.to(bubbles, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.25,
+        stagger: { each: 0.01, from: 'random' },
+        ease: 'power2.in',
+        onComplete: () => {
+          this.shuffledTags = shuffle(this.categories)
+          this.$nextTick(() => {
+            const newBubbles = cloud.querySelectorAll('.bubble')
+            gsap.fromTo(newBubbles,
+              { scale: 0, opacity: 0 },
+              {
+                scale: 1,
+                opacity: 0.88,
+                duration: 0.5,
+                stagger: { each: 0.015, grid: 'auto', from: 'random' },
+                ease: 'back.out(1.7)',
+              }
+            )
+          })
+        },
+      })
     },
     goGenre(tag) {
       this.$router.push({ name: 'GenreDetail', params: { categoryId: tag.id } })
+    }
+  },
+  beforeUnmount() {
+    const cloud = this.$refs.tagCloudRef
+    if (cloud) {
+      cloud.removeEventListener('mousemove', this.handleMouseMove)
+      cloud.removeEventListener('mouseleave', this.handleMouseLeave)
     }
   }
 }
@@ -138,6 +268,42 @@ export default {
   margin: 0 auto;
 }
 
+.cloud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 16px;
+}
+
+.cloud-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.shuffle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 20px;
+  transition: var(--transition);
+}
+
+.shuffle-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.shuffle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .loading-wrap {
   text-align: center;
   padding: 60px;
@@ -160,7 +326,8 @@ export default {
   gap: 16px;
   justify-content: center;
   align-items: center;
-  padding: 30px 20px;
+  padding: 10px 4px;
+  cursor: default;
 }
 
 .bubble {
@@ -172,33 +339,11 @@ export default {
   user-select: none;
   white-space: nowrap;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  animation: floatBubble 3s ease-in-out infinite;
-  animation-delay: var(--bubble-delay, 0s);
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   flex-shrink: 0;
-  opacity: 0.65;
-  filter: brightness(0.85);
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              box-shadow 0.3s ease,
-              filter 0.25s ease,
-              opacity 0.25s ease;
-}
-
-@keyframes floatBubble {
-  0%, 100% { transform: translateY(0) translateX(var(--bubble-x, 0px)); }
-  50% { transform: translateY(-8px) translateX(var(--bubble-x, 0px)); }
-}
-
-.bubble:hover {
-  transform: scale(1.18) translateY(-6px) !important;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
-  filter: brightness(1.15);
-  opacity: 1;
-  z-index: 10;
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              box-shadow 0.3s ease,
-              filter 0.25s ease,
-              opacity 0.25s ease;
+  opacity: 0.88;
+  transform-origin: center center;
+  will-change: transform, opacity;
 }
 
 @keyframes spin {
