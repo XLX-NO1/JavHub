@@ -13,6 +13,8 @@
           @click="switchTab(tab.key)"
         >
           {{ tab.label }}
+          <span v-if="tab.key === 'actress' && displayedActresses.length" class="tab-count">{{ displayedActresses.length }}</span>
+          <span v-if="tab.key === 'series' && displayedSeries.length" class="tab-count">{{ displayedSeries.length }}</span>
         </button>
       </div>
     </div>
@@ -396,7 +398,9 @@ export default {
     },
   },
   async mounted() {
+    console.log('[DEBUG] Genres mounted, activeTab:', this.activeTab)
     this.loadCfg()
+    console.log('[DEBUG] starting Promise.all')
     // 并行加载：题材 + 演员 + 系列 + 统计数据
     await Promise.all([
       this.loadCategories(),
@@ -404,6 +408,7 @@ export default {
       this.loadSeries(),
       this.cfg.goldLegend ? this.loadCategoryStats() : Promise.resolve(),
     ])
+    console.log('[DEBUG] Promise.all done, actresses:', this.actresses.length, 'series:', this.seriesList.length)
   },
   methods: {
     loadCfg() {
@@ -655,6 +660,7 @@ export default {
       this.$router.push({ name: 'GenreDetail', params: { categoryId: tag.id } })
     },
     switchTab(tab) {
+      console.log('[DEBUG] switchTab to:', tab, 'actresses:', this.actresses.length, 'displayed:', this.displayedActresses.length)
       this.activeTab = tab
     },
     actressAvatar(actress) {
@@ -742,9 +748,11 @@ export default {
 
 /* Tab Bar */
 .tab-bar { display: flex; gap: 4px; justify-content: center; margin-top: 24px; }
-.tab-btn { padding: 8px 24px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: var(--transition); }
+.tab-btn { padding: 8px 24px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; }
 .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
 .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tab-count { background: rgba(255,255,255,0.2); border-radius: 10px; padding: 1px 7px; font-size: 11px; }
+.tab-btn.active .tab-count { background: rgba(255,255,255,0.3); }
 
 /* 演员卡片 */
 .actress-tab { padding: 20px; max-width: 1200px; margin: 0 auto; }
