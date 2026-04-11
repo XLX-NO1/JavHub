@@ -87,7 +87,7 @@
           <div class="actress-avatar">
             <img
               :src="actressAvatar(actress)"
-              :alt="actress.name"
+              :alt="actress.name_romaji || actress.name_kanji || 'Unknown'"
               @error="handleActressImgError"
               loading="lazy"
             />
@@ -656,13 +656,12 @@ export default {
       this.$router.push({ name: 'GenreDetail', params: { categoryId: tag.id } })
     },
     switchTab(tab) {
-      console.log('[DEBUG] switchTab to:', tab, 'actresses:', this.actresses.length, 'displayed:', this.displayedActresses.length)
       this.activeTab = tab
     },
     actressAvatar(actress) {
       // 演员头像：优先用 thumbnail_url，否则用名字生成代理头像
       if (actress.thumbnail_url) return actress.thumbnail_url
-      const name = encodeURIComponent(actress.name || '')
+      const name = encodeURIComponent(actress.name_romaji || actress.name_kanji || '')
       return `/api/actors/avatar/${name}`
     },
     handleActressImgError(e) {
@@ -673,11 +672,8 @@ export default {
       try {
         const resp = await api.listActresses(1, 100)
         const raw = resp.data
-        console.log('[DEBUG] actresses resp.data keys:', Object.keys(raw), 'data length:', Array.isArray(raw.data) ? raw.data.length : 'N/A')
         this.actresses = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
-        console.log('[DEBUG] actresses count:', this.actresses.length)
         this.displayedActresses = shuffle(this.actresses).slice(0, 60)
-        console.log('[DEBUG] displayedActresses count:', this.displayedActresses.length)
       } catch (e) {
         console.error('Load actresses FAILED:', e?.message, 'status:', e?.response?.status, 'data:', e?.response?.data, 'full:', e)
       } finally {
