@@ -263,25 +263,27 @@ export default {
       if (!cloud) return
       const bubbles = cloud.querySelectorAll('.bubble')
 
+      // entrance: fast staggered pop-in
       gsap.fromTo(bubbles,
         { scale: 0, opacity: 0 },
         {
           scale: 1,
           opacity: 1,
-          duration: 0.6,
-          stagger: { each: 0.015, grid: 'auto', from: 'random' },
+          duration: 0.35,
+          stagger: { each: 0.008, grid: 'auto', from: 'random' },
           ease: 'back.out(1.7)',
         }
       )
 
+      // subtle float
       bubbles.forEach((bubble, i) => {
         gsap.to(bubble, {
-          y: -8,
-          duration: 1.5 + (i % 5) * 0.3,
+          y: -6,
+          duration: 1.4 + (i % 4) * 0.25,
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
-          delay: i * 0.05,
+          delay: i * 0.04,
         })
       })
 
@@ -300,15 +302,15 @@ export default {
         const centerX = r.left + r.width / 2
         const centerY = r.top + r.height / 2
         const dist = Math.hypot(mouseX - centerX, mouseY - centerY)
-        const maxDist = 200
+        const maxDist = 180
 
         if (dist < maxDist) {
-          const scale = 1 + (1 - dist / maxDist) * 0.6
+          const scale = 1 + (1 - dist / maxDist) * 0.55
           gsap.to(bubble, {
             scale,
             opacity: 1,
-            duration: 0.4,
-            ease: 'elastic.out(1, 0.6)',
+            duration: 0.18,
+            ease: 'back.out(1.2)',
             overwrite: 'auto',
           })
         } else {
@@ -316,8 +318,8 @@ export default {
           gsap.to(bubble, {
             scale: 1,
             opacity: isActive ? 1 : 0.88,
-            duration: 0.5,
-            ease: 'elastic.out(1, 0.6)',
+            duration: 0.22,
+            ease: 'power3.out',
             overwrite: 'auto',
           })
         }
@@ -327,14 +329,12 @@ export default {
       const cloud = this.$refs.tagCloudRef
       if (!cloud) return
       const bubbles = cloud.querySelectorAll('.bubble')
-      bubbles.forEach(bubble => {
-        const isActive = bubble.classList.contains('active')
-        gsap.to(bubble, {
-          scale: 1,
-          opacity: isActive ? 1 : 0.88,
-          duration: 0.6,
-          ease: 'elastic.out(1, 0.6)',
-        })
+      gsap.to(bubbles, {
+        scale: 1,
+        opacity: 0.88,
+        duration: 0.35,
+        ease: 'back.out(1.2)',
+        stagger: 0.005,
       })
     },
     switchCategory(tag) {
@@ -358,29 +358,29 @@ export default {
         return
       }
       const bubbles = cloud.querySelectorAll('.bubble')
+      // fast simultaneous shrink
       gsap.to(bubbles, {
         scale: 0,
         opacity: 0,
-        duration: 0.25,
-        stagger: { each: 0.01, from: 'random' },
+        duration: 0.12,
         ease: 'power2.in',
-        onComplete: () => {
-          this.shuffledTags = shuffle(this.categories)
-          this.$nextTick(() => {
-            const newBubbles = cloud.querySelectorAll('.bubble')
-            gsap.fromTo(newBubbles,
-              { scale: 0, opacity: 0 },
-              {
-                scale: 1,
-                opacity: 1,
-                duration: 0.5,
-                stagger: { each: 0.015, grid: 'auto', from: 'random' },
-                ease: 'back.out(1.7)',
-              }
-            )
-          })
-        },
       })
+      setTimeout(() => {
+        this.shuffledTags = shuffle(this.categories)
+        this.$nextTick(() => {
+          const newBubbles = cloud.querySelectorAll('.bubble')
+          gsap.fromTo(newBubbles,
+            { scale: 0.5, opacity: 0 },
+            {
+              scale: 1,
+              opacity: 0.88,
+              duration: 0.3,
+              stagger: { each: 0.006, grid: 'auto', from: 'random' },
+              ease: 'back.out(2)',
+            }
+          )
+        })
+      }, 140)
     },
     async openModal(video) {
       this.selectedVideo = video
@@ -556,23 +556,13 @@ export default {
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   flex-shrink: 0;
   opacity: 0.88;
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              box-shadow 0.3s ease,
-              filter 0.25s ease,
-              opacity 0.25s ease;
+  transform-origin: center center;
+  will-change: transform, opacity;
 }
 
 .bubble.active {
   opacity: 1;
   filter: brightness(1.05);
-}
-
-.bubble:hover {
-  transform: scale(1.15) translateY(-6px) !important;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
-  filter: brightness(1.1);
-  opacity: 1;
-  z-index: 10;
 }
 
 /* Result Header */

@@ -118,64 +118,60 @@ export default {
       if (!cloud) return
       const bubbles = cloud.querySelectorAll('.bubble')
 
-      // entrance animation
+      // entrance: fast staggered pop-in
       gsap.fromTo(bubbles,
         { scale: 0, opacity: 0 },
         {
           scale: 1,
           opacity: 1,
-          duration: 0.6,
-          stagger: { each: 0.015, grid: 'auto', from: 'random' },
+          duration: 0.35,
+          stagger: { each: 0.008, grid: 'auto', from: 'random' },
           ease: 'back.out(1.7)',
         }
       )
 
-      // subtle float for each bubble
+      // subtle float
       bubbles.forEach((bubble, i) => {
         gsap.to(bubble, {
-          y: -8,
-          duration: 1.5 + (i % 5) * 0.3,
+          y: -6,
+          duration: 1.4 + (i % 4) * 0.25,
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
-          delay: i * 0.05,
+          delay: i * 0.04,
         })
       })
 
-      // proximity magnification
       cloud.addEventListener('mousemove', this.handleMouseMove)
       cloud.addEventListener('mouseleave', this.handleMouseLeave)
     },
     handleMouseMove(e) {
       const cloud = this.$refs.tagCloudRef
       if (!cloud) return
-      const rect = cloud.getBoundingClientRect()
       const mouseX = e.clientX
       const mouseY = e.clientY
-
       const bubbles = cloud.querySelectorAll('.bubble')
+
       bubbles.forEach(bubble => {
         const r = bubble.getBoundingClientRect()
-        const centerX = r.left + r.width / 2
-        const centerY = r.top + r.height / 2
-        const dist = Math.hypot(mouseX - centerX, mouseY - centerY)
-        const maxDist = 200
+        const dist = Math.hypot(mouseX - (r.left + r.width / 2), mouseY - (r.top + r.height / 2))
+        const maxDist = 180
 
         if (dist < maxDist) {
-          const scale = 1 + (1 - dist / maxDist) * 0.6
+          const scale = 1 + (1 - dist / maxDist) * 0.55
           gsap.to(bubble, {
             scale,
             opacity: 1,
-            duration: 0.4,
-            ease: 'elastic.out(1, 0.6)',
+            duration: 0.18,
+            ease: 'back.out(1.2)',
             overwrite: 'auto',
           })
         } else {
           gsap.to(bubble, {
             scale: 1,
             opacity: 0.88,
-            duration: 0.5,
-            ease: 'elastic.out(1, 0.6)',
+            duration: 0.22,
+            ease: 'power3.out',
             overwrite: 'auto',
           })
         }
@@ -188,9 +184,9 @@ export default {
       gsap.to(bubbles, {
         scale: 1,
         opacity: 0.88,
-        duration: 0.6,
-        ease: 'elastic.out(1, 0.6)',
-        stagger: 0.01,
+        duration: 0.35,
+        ease: 'back.out(1.2)',
+        stagger: 0.005,
       })
     },
     reshuffle() {
@@ -200,29 +196,29 @@ export default {
         return
       }
       const bubbles = cloud.querySelectorAll('.bubble')
+      // fast simultaneous shrink
       gsap.to(bubbles, {
         scale: 0,
         opacity: 0,
-        duration: 0.25,
-        stagger: { each: 0.01, from: 'random' },
+        duration: 0.12,
         ease: 'power2.in',
-        onComplete: () => {
-          this.shuffledTags = shuffle(this.categories)
-          this.$nextTick(() => {
-            const newBubbles = cloud.querySelectorAll('.bubble')
-            gsap.fromTo(newBubbles,
-              { scale: 0, opacity: 0 },
-              {
-                scale: 1,
-                opacity: 0.88,
-                duration: 0.5,
-                stagger: { each: 0.015, grid: 'auto', from: 'random' },
-                ease: 'back.out(1.7)',
-              }
-            )
-          })
-        },
       })
+      setTimeout(() => {
+        this.shuffledTags = shuffle(this.categories)
+        this.$nextTick(() => {
+          const newBubbles = cloud.querySelectorAll('.bubble')
+          gsap.fromTo(newBubbles,
+            { scale: 0.5, opacity: 0 },
+            {
+              scale: 1,
+              opacity: 0.88,
+              duration: 0.3,
+              stagger: { each: 0.006, grid: 'auto', from: 'random' },
+              ease: 'back.out(2)',
+            }
+          )
+        })
+      }, 140)
     },
     goGenre(tag) {
       this.$router.push({ name: 'GenreDetail', params: { categoryId: tag.id } })
