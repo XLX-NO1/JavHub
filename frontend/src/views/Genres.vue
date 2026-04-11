@@ -683,7 +683,7 @@ export default {
         this.displayedActresses = shuffle(this.actresses).slice(0, 60)
         console.log('[DEBUG] displayedActresses count:', this.displayedActresses.length)
       } catch (e) {
-        console.error('Load actresses failed:', e)
+        console.error('Load actresses FAILED:', e?.message, 'status:', e?.response?.status, 'data:', e?.response?.data, 'full:', e)
       } finally {
         this.actressesLoading = false
       }
