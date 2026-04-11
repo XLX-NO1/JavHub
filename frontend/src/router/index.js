@@ -7,7 +7,6 @@ import Subscription from '../views/Subscription.vue'
 import Library from '../views/Library.vue'
 import Logs from '../views/Logs.vue'
 import Config from '../views/Config.vue'
-import JavbusLogin from '../views/JavbusLogin.vue'
 import Actor from '../views/Actor.vue'
 import Favorites from '../views/Favorites.vue'
 
@@ -21,7 +20,6 @@ const routes = [
   { path: '/logs', component: Logs },
   { path: '/settings', component: Config },
   { path: '/config', redirect: '/settings' },
-  { path: '/javbus-login', component: JavbusLogin },
   { path: '/actor/:name', component: Actor },
   { path: '/favorites', component: Favorites },
   { path: '/missing', name: 'Missing', component: () => import('../views/Missing.vue') },
