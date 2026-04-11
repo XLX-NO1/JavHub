@@ -59,15 +59,22 @@
 
     <!-- 演员 Tab：头像卡片 -->
     <div v-if="activeTab === 'actress'" class="actress-tab">
-      <div class="actress-header">
-        <span class="cloud-hint">共 {{ actresses.length }} 位演员</span>
-        <button class="shuffle-btn" @click="reshuffleActresses" :disabled="actressesLoading">
+      <div class="actress-header" v-if="!actressesLoading && actresses.length">
+        <button class="shuffle-btn" @click="prevActressPage" :disabled="actressPage === 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+          上一页
+        </button>
+        <button class="shuffle-btn" @click="randomActressPage">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
             <polyline points="23 4 23 10 17 10"/>
             <polyline points="1 20 1 14 7 14"/>
             <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
           </svg>
-          换一批
+          随机
+        </button>
+        <button class="shuffle-btn" @click="nextActressPage" :disabled="actressPage >= actressTotalPages - 1">
+          下一页
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
 
@@ -76,7 +83,7 @@
         <p>加载演员中...</p>
       </div>
 
-      <div v-else class="actress-grid">
+      <div v-else class="actress-grid" :style="actressGridStyle">
         <div
           v-for="actress in displayedActresses"
           :key="actress.id"
@@ -372,6 +379,7 @@ export default {
       actresses: [],
       displayedActresses: [],
       actressesLoading: false,
+      actressPage: 0,
       // 系列
       seriesList: [],
       displayedSeries: [],
@@ -389,11 +397,36 @@ export default {
         '--rarity-common': c.common || '#607080',
       }
     },
+    actressGridStyle() {
+      const size = this.cfg.actressAvatarSize || 'medium'
+      const avatarMap = { small: '60px', medium: '80px', large: '100px' }
+      const avatar = avatarMap[size] || '80px'
+      return {
+        '--actress-avatar-size': avatar,
+        gridTemplateColumns: `repeat(auto-fill, minmax(${avatar}, 1fr))`,
+      }
+    },
+    actressPageSize() {
+      const size = this.cfg.actressAvatarSize || 'medium'
+      // 小头像4行约48, 中3行约36, 大2行约20
+      const map = { small: 48, medium: 36, large: 20 }
+      return map[size] || 36
+    },
+    actressTotalPages() {
+      return Math.max(1, Math.ceil(this.actresses.length / this.actressPageSize))
+    },
   },
   watch: {
     'cfg.bubbleCount'(newVal) {
       // bubbleCount 改变时重新截取显示范围
       this.displayedTags = this.shuffledTags.slice(0, newVal)
+    },
+    'cfg.actressAvatarSize'() {
+      // 头像尺寸变化时，重新计算当前页（页码可能超界）
+      if (this.actressPage >= this.actressTotalPages) {
+        this.actressPage = Math.max(0, this.actressTotalPages - 1)
+      }
+      this._applyActressPage()
     },
   },
   async mounted() {
@@ -675,7 +708,8 @@ export default {
         const resp = await api.listActresses(1, 100)
         const raw = resp.data
         this.actresses = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
-        this.displayedActresses = shuffle(this.actresses).slice(0, 60)
+        this.actressPage = 0
+        this._applyActressPage()
       } catch (e) {
         console.error('Load actresses FAILED:', e?.message, 'status:', e?.response?.status, 'data:', e?.response?.data, 'full:', e)
       } finally {
@@ -694,8 +728,26 @@ export default {
         this.seriesLoading = false
       }
     },
-    reshuffleActresses() {
-      this.displayedActresses = shuffle(this.actresses).slice(0, 60)
+    _applyActressPage() {
+      const shuffled = shuffle(this.actresses)
+      const start = this.actressPage * this.actressPageSize
+      this.displayedActresses = shuffled.slice(start, start + this.actressPageSize)
+    },
+    randomActressPage() {
+      this.actressPage = Math.floor(Math.random() * this.actressTotalPages)
+      this._applyActressPage()
+    },
+    nextActressPage() {
+      if (this.actressPage < this.actressTotalPages - 1) {
+        this.actressPage++
+        this._applyActressPage()
+      }
+    },
+    prevActressPage() {
+      if (this.actressPage > 0) {
+        this.actressPage--
+        this._applyActressPage()
+      }
     },
     reshuffleSeries() {
       this.displayedSeries = shuffle(this.seriesList).slice(0, 60)
@@ -752,10 +804,10 @@ export default {
 /* 演员卡片：整个圆形，参照VideoModal */
 .actress-tab { padding: 20px; max-width: 1200px; margin: 0 auto; }
 .actress-header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 16px; }
-.actress-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 20px; justify-items: center; }
+.actress-grid { display: grid; gap: 20px; justify-items: center; }
 .actress-card { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: var(--transition); }
 .actress-card:hover { transform: translateY(-4px); }
-.actress-avatar { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: var(--bg-secondary); border: 2px solid var(--border); transition: border-color 0.2s, box-shadow 0.2s; flex-shrink: 0; }
+.actress-avatar { width: var(--actress-avatar-size, 80px); height: var(--actress-avatar-size, 80px); border-radius: 50%; overflow: hidden; background: var(--bg-secondary); border: 2px solid var(--border); transition: border-color 0.2s, box-shadow 0.2s; flex-shrink: 0; }
 .actress-card:hover .actress-avatar { border-color: var(--accent); box-shadow: 0 0 16px var(--accent-glow); }
 .actress-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform 0.3s ease; }
 .actress-card:hover .actress-avatar img { transform: scale(1.06); }

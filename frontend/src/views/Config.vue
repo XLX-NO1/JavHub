@@ -275,6 +275,17 @@
           </div>
         </div>
         <div class="form-row">
+          <div class="form-group" style="flex:1">
+            <label>演员头像尺寸</label>
+            <div class="avatar-size-btns">
+              <button class="size-btn" :class="{ active: bubbleCfg.actressAvatarSize === 'small' }" @click="bubbleCfg.actressAvatarSize = 'small'">小</button>
+              <button class="size-btn" :class="{ active: bubbleCfg.actressAvatarSize === 'medium' }" @click="bubbleCfg.actressAvatarSize = 'medium'">中</button>
+              <button class="size-btn" :class="{ active: bubbleCfg.actressAvatarSize === 'large' }" @click="bubbleCfg.actressAvatarSize = 'large'">大</button>
+            </div>
+            <div class="size-hint">{{ { small: '4行 · 约48个', medium: '3行 · 约36个', large: '2行 · 约24个' }[bubbleCfg.actressAvatarSize] }}</div>
+          </div>
+        </div>
+        <div class="form-row">
           <button class="btn btn-secondary" @click="resetBubbleCfg">恢复默认</button>
         </div>
       </div>
@@ -314,6 +325,7 @@ export default {
         colorMode: 'legendary', palette: 'monet',
         customGradients: [], customGradientsText: '',
         goldLegend: true, bubbleCount: 36,
+        actressAvatarSize: 'medium', // 'small'(4行48个) | 'medium'(3行36个) | 'large'(2行24个)
         rarityColors: {
           legendary: '#c89a30',
           epic: '#7040a0',
@@ -522,6 +534,26 @@ export default {
   appearance: none;
   -webkit-appearance: none;
 }
+
+.avatar-size-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.size-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.size-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.size-btn.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+.size-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
 
 .palette-select:focus {
   outline: none;
