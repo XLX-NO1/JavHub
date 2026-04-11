@@ -749,18 +749,17 @@ export default {
 .tab-count { background: rgba(255,255,255,0.2); border-radius: 10px; padding: 1px 7px; font-size: 11px; }
 .tab-btn.active .tab-count { background: rgba(255,255,255,0.3); }
 
-/* 演员卡片 */
+/* 演员卡片：整个圆形，参照VideoModal */
 .actress-tab { padding: 20px; max-width: 1200px; margin: 0 auto; }
 .actress-header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 16px; }
-.actress-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; }
-.actress-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; transition: var(--transition); text-align: center; }
-.actress-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
-.actress-avatar { width: 100%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--bg-secondary); border: 2px solid var(--border); transition: border-color 0.2s; box-sizing: border-box; }
-.actress-card:hover .actress-avatar { border-color: var(--accent); }
+.actress-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 20px; justify-items: center; }
+.actress-card { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; transition: var(--transition); }
+.actress-card:hover { transform: translateY(-4px); }
+.actress-avatar { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: var(--bg-secondary); border: 2px solid var(--border); transition: border-color 0.2s, box-shadow 0.2s; flex-shrink: 0; }
+.actress-card:hover .actress-avatar { border-color: var(--accent); box-shadow: 0 0 16px var(--accent-glow); }
 .actress-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform 0.3s ease; }
-.actress-card:hover .actress-avatar img { transform: scale(1.05); }
-.actress-name { font-size: 13px; font-weight: 600; color: var(--text-primary); padding: 8px 8px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.actress-count { font-size: 11px; color: var(--text-muted); padding: 0 8px 8px; }
+.actress-card:hover .actress-avatar img { transform: scale(1.06); }
+.actress-name { font-size: 12px; font-weight: 600; color: var(--text-primary); text-align: center; max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .tag-cloud { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; padding: 10px 4px; background: var(--bg-primary); border-radius: 16px; }
 .bubble {
