@@ -33,6 +33,7 @@
           v-for="tag in shuffledTags"
           :key="tag.id"
           class="bubble"
+          :class="legendaryBubbleClass(tag)"
           :data-id="tag.id"
           :style="bubbleStyle(tag)"
           @click="goGenre(tag)"
@@ -216,14 +217,19 @@ export default {
     bubbleStyle(tag) {
       const size = this.cfg.baseSize
       const fill = this.cfg.fillPercent / 100
-      const gradient = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
+      const isLegendary = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
+      const gradient = isLegendary
         ? this.getRarityGradient(tag)
         : this.getGradient(tag, this.cfg.palette)
-      return {
+      const style = {
         background: gradient,
         fontSize: `${size}px`,
         padding: `${Math.round(size * fill * 0.6)}px ${Math.round(size * fill * 1.2)}px`,
       }
+      if (isLegendary) {
+        style['--shimmer-pos'] = '-100%'
+      }
+      return style
     },
     async loadCategories() {
       this.loading = true
@@ -293,6 +299,39 @@ export default {
         })
       })
 
+      // Legendary glow: pulsing gold box-shadow + shimmer sweep
+      if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
+        bubbles.forEach((bubble, i) => {
+          const rarity = this.rarityMap[bubble.dataset.id] || 'common'
+          if (rarity === 'legendary') {
+            // Pulsing outer glow
+            gsap.to(bubble, {
+              boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
+              duration: 1.6,
+              repeat: -1,
+              yoyo: true,
+              ease: 'sine.inOut',
+              delay: i * 0.1,
+            })
+            // Shimmer sweep via GSAP background position
+            gsap.fromTo(bubble,
+              { '--shimmer-pos': '-100%' },
+              { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
+            )
+          } else if (rarity === 'rare') {
+            // Subtle purple pulse
+            gsap.to(bubble, {
+              boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
+              duration: 2.2,
+              repeat: -1,
+              yoyo: true,
+              ease: 'sine.inOut',
+              delay: i * 0.12,
+            })
+          }
+        })
+      }
+
       cloud.addEventListener('mousemove', this.handleMouseMove)
       cloud.addEventListener('mouseleave', this.handleMouseLeave)
     },
@@ -355,6 +394,7 @@ export default {
       const cloud = this.$refs.tagCloudRef
       if (cloud) {
         const bubbles = cloud.querySelectorAll('.bubble')
+        gsap.killTweensOf(bubbles)
         gsap.to(bubbles, { scale: 0, opacity: 0, duration: 0.08, stagger: 0, ease: 'power2.in' })
       }
       this.shuffledTags = shuffle(this.categories)
@@ -365,10 +405,35 @@ export default {
           { scale: 0, opacity: 0 },
           { scale: 1, opacity: 0.88, duration: 0.3, stagger: 0.006, ease: 'back.out(1.7)' }
         )
+        // Re-apply legendary glow animations after reshuffle
+        if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
+          newBubbles.forEach((bubble, i) => {
+            const rarity = this.rarityMap[bubble.dataset.id] || 'common'
+            if (rarity === 'legendary') {
+              gsap.to(bubble, {
+                boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
+                duration: 1.6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.1,
+              })
+              gsap.fromTo(bubble,
+                { '--shimmer-pos': '-100%' },
+                { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
+              )
+            } else if (rarity === 'rare') {
+              gsap.to(bubble, {
+                boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
+                duration: 2.2, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.12,
+              })
+            }
+          })
+        }
       })
     },
     goGenre(tag) {
       this.$router.push({ name: 'GenreDetail', params: { categoryId: tag.id } })
+    },
+    legendaryBubbleClass(tag) {
+      if (this.cfg.colorMode !== 'legendary' || !this.cfg.goldLegend) return ''
+      return 'rarity-' + (this.rarityMap[tag.id] || 'common')
     },
   },
   beforeUnmount() {
@@ -376,6 +441,8 @@ export default {
     if (cloud) {
       cloud.removeEventListener('mousemove', this.handleMouseMove)
       cloud.removeEventListener('mouseleave', this.handleMouseLeave)
+      const bubbles = cloud.querySelectorAll('.bubble')
+      gsap.killTweensOf(bubbles)
     }
   }
 }
@@ -395,6 +462,76 @@ export default {
 .loading-wrap { text-align: center; padding: 60px; color: var(--text-secondary); }
 .spinner-large { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
 .tag-cloud { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; padding: 10px 4px; background: var(--bg-primary); border-radius: 16px; }
-.bubble { border-radius: 50px; color: white; font-weight: 600; cursor: pointer; user-select: none; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.3); text-shadow: 0 1px 2px rgba(0,0,0,0.3); flex-shrink: 0; opacity: 0.88; transform-origin: center center; position: relative; }
+.bubble {
+  border-radius: 50px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+  opacity: 0.88;
+  transform-origin: center center;
+  position: relative;
+  transition: box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+/* Shimmer sweep overlay for legendary */
+.bubble.legendary,
+.bubble.rarity-legendary {
+  overflow: hidden;
+}
+.bubble.legendary::before,
+.bubble.rarity-legendary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: var(--shimmer-pos, -100%);
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 200, 0.45) 45%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 200, 0.45) 55%,
+    transparent 100%
+  );
+  transform: skewX(-15deg);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* Legendary: 3-layer gold glow (炉石橙卡质感) */
+.bubble.legendary,
+.bubble.rarity-legendary {
+  box-shadow:
+    0 0 8px 3px rgba(255, 185, 0, 0.92),
+    0 0 22px 6px rgba(255, 150, 0, 0.68),
+    0 0 50px 14px rgba(255, 110, 0, 0.38);
+  filter: brightness(1.08);
+}
+
+/* Rare: 2-layer purple glow */
+.bubble.rarity-rare {
+  box-shadow:
+    0 0 6px 2px rgba(170, 100, 255, 0.82),
+    0 0 16px 4px rgba(148, 76, 220, 0.55);
+  filter: brightness(1.04);
+}
+
+/* Common: subtle blue-gray glow */
+.bubble.rarity-common {
+  box-shadow:
+    0 0 4px 1px rgba(100, 160, 200, 0.38);
+}
+
+/* Popular: no glow */
+.bubble.rarity-popular {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+}
+
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>

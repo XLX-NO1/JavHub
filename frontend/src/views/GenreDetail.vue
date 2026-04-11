@@ -43,7 +43,8 @@
             v-for="tag in shuffledTags"
             :key="tag.id"
             class="bubble"
-            :class="{ active: tag.id === categoryId }"
+            :class="[legendaryBubbleClass(tag), { active: tag.id === categoryId }]"
+            :data-id="tag.id"
             :style="bubbleStyle(tag)"
             @click="switchCategory(tag)"
           >
@@ -239,14 +240,19 @@ export default {
     bubbleStyle(tag) {
       const size = this.cfg.baseSize
       const fill = this.cfg.fillPercent / 100
-      const gradient = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
+      const isLegendary = this.cfg.colorMode === 'legendary' && this.cfg.goldLegend
+      const gradient = isLegendary
         ? this.getRarityGradient(tag)
         : this.getGradient(tag, this.cfg.palette)
-      return {
+      const style = {
         background: gradient,
         fontSize: `${size}px`,
         padding: `${Math.round(size * fill * 0.6)}px ${Math.round(size * fill * 1.2)}px`,
       }
+      if (isLegendary) {
+        style['--shimmer-pos'] = '-100%'
+      }
+      return style
     },
     loadCfg() {
       try {
@@ -343,6 +349,28 @@ export default {
           delay: i * 0.03,
         })
       })
+
+      // Legendary glow animations
+      if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
+        bubbles.forEach((bubble, i) => {
+          const rarity = this.rarityMap[bubble.dataset.id] || 'common'
+          if (rarity === 'legendary') {
+            gsap.to(bubble, {
+              boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
+              duration: 1.6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.1,
+            })
+            gsap.fromTo(bubble,
+              { '--shimmer-pos': '-100%' },
+              { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
+            )
+          } else if (rarity === 'rare') {
+            gsap.to(bubble, {
+              boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
+              duration: 2.2, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.12,
+            })
+          }
+        })
+      }
 
       cloud.addEventListener('mousemove', this.handleMouseMove)
       cloud.addEventListener('mouseleave', this.handleMouseLeave)
@@ -462,8 +490,13 @@ export default {
       if (cloud) {
         cloud.removeEventListener('mousemove', this.handleMouseMove)
         cloud.removeEventListener('mouseleave', this.handleMouseLeave)
+        gsap.killTweensOf(cloud.querySelectorAll('.bubble'))
       }
       this.$router.push({ name: 'GenreDetail', params: { categoryId: tag.id } })
+    },
+    legendaryBubbleClass(tag) {
+      if (this.cfg.colorMode !== 'legendary' || !this.cfg.goldLegend) return ''
+      return 'rarity-' + (this.rarityMap[tag.id] || 'common')
     },
     reshuffle() {
       if (!this.allMovies.length) return
@@ -476,6 +509,7 @@ export default {
         return
       }
       const bubbles = cloud.querySelectorAll('.bubble')
+      gsap.killTweensOf(bubbles)
       gsap.to(bubbles, {
         scale: 0,
         opacity: 0,
@@ -497,6 +531,26 @@ export default {
             ease: 'back.out(1.7)',
           }
         )
+        if (this.cfg.colorMode === 'legendary' && this.cfg.goldLegend) {
+          newBubbles.forEach((bubble, i) => {
+            const rarity = this.rarityMap[bubble.dataset.id] || 'common'
+            if (rarity === 'legendary') {
+              gsap.to(bubble, {
+                boxShadow: '0 0 16px 6px rgba(255, 185, 0, 0.95), 0 0 40px 10px rgba(255, 150, 0, 0.7), 0 0 80px 20px rgba(255, 120, 0, 0.4)',
+                duration: 1.6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.1,
+              })
+              gsap.fromTo(bubble,
+                { '--shimmer-pos': '-100%' },
+                { '--shimmer-pos': '200%', duration: 2.2, repeat: -1, ease: 'power1.inOut', delay: i * 0.15 }
+              )
+            } else if (rarity === 'rare') {
+              gsap.to(bubble, {
+                boxShadow: '0 0 10px 3px rgba(170, 100, 255, 0.85), 0 0 25px 6px rgba(150, 80, 220, 0.55)',
+                duration: 2.2, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: i * 0.12,
+              })
+            }
+          })
+        }
       })
     },
     async openModal(video) {
@@ -555,6 +609,7 @@ export default {
     if (cloud) {
       cloud.removeEventListener('mousemove', this.handleMouseMove)
       cloud.removeEventListener('mouseleave', this.handleMouseLeave)
+      gsap.killTweensOf(cloud.querySelectorAll('.bubble'))
     }
   }
 }
@@ -676,6 +731,62 @@ export default {
   opacity: 0.88;
   transform-origin: center center;
   position: relative;
+  transition: box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+/* Shimmer sweep for legendary */
+.bubble.legendary,
+.bubble.rarity-legendary {
+  overflow: hidden;
+}
+.bubble.legendary::before,
+.bubble.rarity-legendary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: var(--shimmer-pos, -100%);
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 200, 0.45) 45%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 200, 0.45) 55%,
+    transparent 100%
+  );
+  transform: skewX(-15deg);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* Legendary: 3-layer gold glow */
+.bubble.legendary,
+.bubble.rarity-legendary {
+  box-shadow:
+    0 0 8px 3px rgba(255, 185, 0, 0.92),
+    0 0 22px 6px rgba(255, 150, 0, 0.68),
+    0 0 50px 14px rgba(255, 110, 0, 0.38);
+  filter: brightness(1.08);
+}
+
+/* Rare: 2-layer purple glow */
+.bubble.rarity-rare {
+  box-shadow:
+    0 0 6px 2px rgba(170, 100, 255, 0.82),
+    0 0 16px 4px rgba(148, 76, 220, 0.55);
+  filter: brightness(1.04);
+}
+
+/* Common: subtle blue-gray glow */
+.bubble.rarity-common {
+  box-shadow:
+    0 0 4px 1px rgba(100, 160, 200, 0.38);
+}
+
+/* Popular: no glow */
+.bubble.rarity-popular {
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
 }
 
 .bubble.active {
