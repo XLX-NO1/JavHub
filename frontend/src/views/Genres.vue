@@ -52,7 +52,7 @@
           :style="bubbleStyle(tag)"
           @click="goGenre(tag)"
         >
-          {{ tag.name_ja || tag.name_en || tag.name }}
+          {{ cfg.displayLang === 'en' ? (tag.name_en || tag.name_ja || tag.name) : (tag.name_ja || tag.name_en || tag.name) }}
         </div>
       </div>
     </div>
@@ -93,12 +93,12 @@
           <div class="actress-avatar">
             <img
               :src="actressAvatar(actress)"
-              :alt="actress.name_kanji || actress.name_romaji || 'Unknown'"
+              :alt="cfg.displayLang === 'en' ? (actress.name_romaji || actress.name_kanji || 'Unknown') : (actress.name_kanji || actress.name_romaji || 'Unknown')"
               @error="handleActressImgError"
               loading="lazy"
             />
           </div>
-          <div class="actress-name">{{ actress.name_kanji || actress.name_romaji || 'Unknown' }}</div>
+          <div class="actress-name">{{ cfg.displayLang === 'en' ? (actress.name_romaji || actress.name_kanji || 'Unknown') : (actress.name_kanji || actress.name_romaji || 'Unknown') }}</div>
         </div>
       </div>
     </div>
@@ -131,7 +131,7 @@
           :style="bubbleStyle(item)"
           @click="goSeries(item)"
         >
-          {{ item.name_ja || item.name_en }}
+          {{ cfg.displayLang === 'en' ? (item.name_en || item.name_ja) : (item.name_ja || item.name_en) }}
         </div>
       </div>
     </div>

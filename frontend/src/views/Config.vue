@@ -286,6 +286,15 @@
           </div>
         </div>
         <div class="form-row">
+          <div class="form-group" style="flex:1">
+            <label>显示语言</label>
+            <div class="avatar-size-btns">
+              <button class="size-btn" :class="{ active: bubbleCfg.displayLang === 'ja' }" @click="bubbleCfg.displayLang = 'ja'">日文</button>
+              <button class="size-btn" :class="{ active: bubbleCfg.displayLang === 'en' }" @click="bubbleCfg.displayLang = 'en'">英文</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
           <button class="btn btn-secondary" @click="resetBubbleCfg">恢复默认</button>
         </div>
       </div>
@@ -325,7 +334,8 @@ export default {
         colorMode: 'legendary', palette: 'monet',
         customGradients: [], customGradientsText: '',
         goldLegend: true, bubbleCount: 36,
-        actressAvatarSize: 'medium', // 'small'(4行48个) | 'medium'(3行36个) | 'large'(2行24个)
+        actressAvatarSize: 'medium', // 'small' | 'medium' | 'large'
+        displayLang: 'ja', // 'ja' = 日文优先 | 'en' = 英文优先
         rarityColors: {
           legendary: '#c89a30',
           epic: '#7040a0',
