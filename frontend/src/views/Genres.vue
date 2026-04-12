@@ -52,7 +52,7 @@
           :style="bubbleStyle(tag)"
           @click="goGenre(tag)"
         >
-          {{ cfg.displayLang === 'en' ? (tag.name_en || tag.name_ja || tag.name) : (tag.name_ja || tag.name_en || tag.name) }}
+          {{ displayName(tag, 'name_ja', 'name_en') || tag.name }}
         </div>
       </div>
     </div>
@@ -93,12 +93,12 @@
           <div class="actress-avatar">
             <img
               :src="actressAvatar(actress)"
-              :alt="cfg.displayLang === 'en' ? (actress.name_romaji || actress.name_kanji || 'Unknown') : (actress.name_kanji || actress.name_romaji || 'Unknown')"
+              :alt="displayName(actress, 'name_kanji', 'name_romaji') || 'Unknown'"
               @error="handleActressImgError"
               loading="lazy"
             />
           </div>
-          <div class="actress-name">{{ cfg.displayLang === 'en' ? (actress.name_romaji || actress.name_kanji || 'Unknown') : (actress.name_kanji || actress.name_romaji || 'Unknown') }}</div>
+          <div class="actress-name">{{ displayName(actress, 'name_kanji', 'name_romaji') || 'Unknown' }}</div>
         </div>
       </div>
     </div>
@@ -131,7 +131,7 @@
           :style="bubbleStyle(item)"
           @click="goSeries(item)"
         >
-          {{ cfg.displayLang === 'en' ? (item.name_en || item.name_ja) : (item.name_ja || item.name_en) }}
+          {{ displayName(item, 'name_ja', 'name_en') }}
         </div>
       </div>
     </div>
@@ -141,6 +141,7 @@
 <script>
 import gsap from 'gsap'
 import api from '../api'
+import { displayName } from '../utils/displayLang.js'
 
 // === Color Palettes ===
 const PALETTES = {
@@ -433,6 +434,7 @@ export default {
     ])
   },
   methods: {
+    displayName,
     loadCfg() {
       try {
         const saved = localStorage.getItem(LS_KEY)

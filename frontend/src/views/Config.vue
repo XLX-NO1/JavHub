@@ -289,8 +289,8 @@
           <div class="form-group" style="flex:1">
             <label>显示语言</label>
             <div class="avatar-size-btns">
-              <button class="size-btn" :class="{ active: bubbleCfg.displayLang === 'ja' }" @click="bubbleCfg.displayLang = 'ja'">日文</button>
-              <button class="size-btn" :class="{ active: bubbleCfg.displayLang === 'en' }" @click="bubbleCfg.displayLang = 'en'">英文</button>
+              <button class="size-btn" :class="{ active: displayLangVal === 'ja' }" @click="displayLang.value = 'ja'">日文</button>
+              <button class="size-btn" :class="{ active: displayLangVal === 'en' }" @click="displayLang.value = 'en'">英文</button>
             </div>
           </div>
         </div>
@@ -312,6 +312,7 @@
 <script>
 import api from '../api'
 import { THEMES, applyTheme } from '../assets/themes.js'
+import { displayLang } from '../utils/displayLang.js'
 
 export default {
   name: 'Config',
@@ -335,7 +336,6 @@ export default {
         customGradients: [], customGradientsText: '',
         goldLegend: true, bubbleCount: 36,
         actressAvatarSize: 'medium', // 'small' | 'medium' | 'large'
-        displayLang: 'ja', // 'ja' = 日文优先 | 'en' = 英文优先
         rarityColors: {
           legendary: '#c89a30',
           epic: '#7040a0',
@@ -361,6 +361,7 @@ export default {
     }
   },
   computed: {
+    displayLangVal() { return displayLang.value },
     // 下拉选中色系的颜色预览条
     currentPalettePreview() {
       if (this.bubbleCfg.palette === '__all__') {

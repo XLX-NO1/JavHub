@@ -48,7 +48,7 @@
             :style="bubbleStyle(tag)"
             @click="switchCategory(tag)"
           >
-            {{ tag.name_en || tag.name_ja || tag.name }}
+            {{ displayName(tag, 'name_ja', 'name_en') || tag.name }}
           </div>
         </div>
       </div>
@@ -137,6 +137,7 @@
 import gsap from 'gsap'
 import api from '../api'
 import VideoModal from '../components/VideoModal.vue'
+import { displayName } from '../utils/displayLang.js'
 
 const PALETTES = {
   monet: ['linear-gradient(135deg, #c4b5d8, #a5b4c8)', 'linear-gradient(135deg, #d4c4e0, #b8c5d6)', 'linear-gradient(135deg, #c8d4c0, #a8b8a0)', 'linear-gradient(135deg, #d0c0dc, #b0a8c8)', 'linear-gradient(135deg, #e0d0d8, #c8b8c0)', 'linear-gradient(135deg, #c0cce0, #a8b8cc)', 'linear-gradient(135deg, #d8c8dc, #c0b0cc)', 'linear-gradient(135deg, #ccd4d8, #b8c4c8)'],
@@ -220,7 +221,7 @@ export default {
     },
     categoryName() {
       const cat = this.categories.find(c => c.id === this.categoryId)
-      return cat ? (cat.name_en || cat.name_ja || cat.name) : ''
+      return cat ? (displayName(cat, 'name_ja', 'name_en') || cat.name) : ''
     }
   },
   async mounted() {
@@ -246,6 +247,7 @@ export default {
     }
   },
   methods: {
+    displayName,
     getGradient(tag, palette) {
       let gradients
       if (palette === '__all__') {

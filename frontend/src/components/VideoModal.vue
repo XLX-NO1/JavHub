@@ -47,17 +47,17 @@
             <div v-if="video.maker" class="meta-row">
               <span class="meta-label">厂商</span>
               <span class="meta-value clickable" @click="$emit('search-by-maker', video.maker.name_en || video.maker.name_ja)">
-                {{ video.maker.name_en || video.maker.name_ja }}
+                {{ displayName(video.maker) }}
               </span>
             </div>
             <div v-if="video.label" class="meta-row">
               <span class="meta-label">品牌</span>
-              <span class="meta-value">{{ video.label.name_en || video.label.name_ja }}</span>
+              <span class="meta-value">{{ displayName(video.label) }}</span>
             </div>
             <div v-if="video.series" class="meta-row">
               <span class="meta-label">系列</span>
               <span class="meta-value clickable" @click="$emit('search-by-series', video.series.name_en || video.series.name_ja)">
-                {{ video.series.name_en || video.series.name_ja }}
+                {{ displayName(video.series) }}
               </span>
             </div>
           </div>
@@ -76,12 +76,12 @@
                   <img
                     v-if="actress.image_url"
                     :src="formatAvatarUrl(actress.image_url)"
-                    :alt="actress.name_kanji || actress.name_romaji"
+                    :alt="displayName(actress, 'name_kanji', 'name_romaji')"
                     @error="onAvatarError($event)"
                   />
-                  <span v-else class="avatar-placeholder">{{ (actress.name_kanji || actress.name_romaji || '?')[0] }}</span>
+                  <span v-else class="avatar-placeholder">{{ (displayName(actress, 'name_kanji', 'name_romaji') || '?')[0] }}</span>
                 </div>
-                <span class="actress-name">{{ actress.name_kanji || actress.name_romaji }}</span>
+                <span class="actress-name">{{ displayName(actress, 'name_kanji', 'name_romaji') }}</span>
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@
                 class="actress-tag clickable"
                 @click="$emit('search-by-category', cat.name_en || cat.name_ja)"
               >
-                {{ cat.name_en || cat.name_ja }}
+                {{ displayName(cat) }}
               </span>
             </div>
           </div>
@@ -146,6 +146,8 @@
 </template>
 
 <script>
+import { displayName } from '../utils/displayLang.js'
+
 export default {
   name: 'VideoModal',
   props: {
@@ -177,6 +179,7 @@ export default {
     }
   },
   methods: {
+    displayName,
     handleImgError(e) {
       e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600"><rect fill="%231a1a2e" width="400" height="600"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%236B6B8A" font-size="14">暂无封面</text></svg>'
     },
