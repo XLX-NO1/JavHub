@@ -376,6 +376,7 @@ export default {
       rarityMap: {},
       bubbleRects: new Map(),
       // 演员
+      actressRawPage: [],       // 后端返回的原始这一页数据
       displayedActresses: [],
       actressesLoading: false,
       actressPage: 1,
@@ -701,7 +702,8 @@ export default {
         const pageSize = this.actressPageSize
         const resp = await api.listActresses(page, pageSize)
         const raw = resp.data
-        this.displayedActresses = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
+        this.actressRawPage = Array.isArray(raw.data) ? raw.data : (Array.isArray(raw) ? raw : [])
+        this.displayedActresses = shuffle([...this.actressRawPage])
         this.actressTotalPages = raw.total_pages || 1
         this.actressPage = page
       } catch (e) {
@@ -723,8 +725,8 @@ export default {
       }
     },
     randomActressPage() {
-      const page = Math.floor(Math.random() * this.actressTotalPages) + 1
-      this.loadActresses(page)
+      // 本地 shuffle 当前页，不调后端
+      this.displayedActresses = shuffle([...this.actressRawPage])
     },
     nextActressPage() {
       if (this.actressPage < this.actressTotalPages) {
