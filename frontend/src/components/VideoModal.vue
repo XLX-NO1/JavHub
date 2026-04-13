@@ -65,9 +65,7 @@
             </div>
             <div class="meta-row">
               <span class="meta-label">系列</span>
-              <span v-if="video.series" class="meta-value clickable" @click="$emit('navigate', { type: 'series', item: video.series })">
-                <span v-html="itemDisplayName(video.series, 'name', 'name')"></span>
-              </span>
+              <span v-if="video.series" class="meta-value clickable" @click="$emit('navigate', { type: 'series', item: video.series })" v-html="itemDisplayName(video.series, &quot;name&quot;, &quot;name&quot;)"></span>
               <span v-else class="meta-value meta-value--empty">无</span>
             </div>
             <div class="meta-row">
@@ -207,6 +205,37 @@ export default {
       currentGalleryIndex: 0,
     }
   },
+  computed: {
+    magnets() {
+      return this.video?.magnets || []
+    },
+    coverImageUrl() {
+      if (!this.video) return '/placeholder.png'
+      const url = this.video.jacket_thumb_url
+      if (!url) return '/placeholder.png'
+      // 如果是外部DMM图片URL，通过后端代理
+      if (url.startsWith('http')) {
+        return `/api/proxy/image?url=${encodeURIComponent(url)}`
+      }
+      const hiRes = jacketFullUrl(url)
+      return hiRes || url || '/placeholder.png'
+    },
+    galleryThumbs() {
+      if (!this.video) return []
+      const first = this.video.gallery_thumb_first
+      const last = this.video.gallery_thumb_last
+      if (!first || !last) return []
+      const firstNum = parseInt(first.match(/(\d+)$/)?.[1] || '0')
+      const lastNum = parseInt(last.match(/(\d+)$/)?.[1] || '0')
+      if (isNaN(firstNum) || isNaN(lastNum) || firstNum > lastNum) return []
+      const prefix = first.replace(/\d+$/, '')
+      const thumbs = []
+      for (let i = firstNum; i <= lastNum; i++) {
+        thumbs.push(`${prefix}${i}`)
+      }
+      return thumbs
+    },
+  },
   methods: {
     // 返回翻译名称的 HTML：有译文时 "译文(原文)"，原文小字体
     transName(item, jaField, enField, jaTransField, enTransField) {
@@ -252,34 +281,6 @@ export default {
       }
       return this.escapeHtml(orig)
     },
-    displayName,
-    handleImgError(e) {
-        return this.video.magnets
-      }
-      return []
-    },
-    coverImageUrl() {
-      if (!this.video) return '/placeholder.png'
-      const hiRes = jacketFullUrl(this.video.jacket_thumb_url)
-      return hiRes || this.video.jacket_thumb_url || '/placeholder.png'
-    },
-    galleryThumbs() {
-      if (!this.video) return []
-      const first = this.video.gallery_thumb_first
-      const last = this.video.gallery_thumb_last
-      if (!first || !last) return []
-      const firstNum = parseInt(first.match(/(\d+)$/)?.[1] || '0')
-      const lastNum = parseInt(last.match(/(\d+)$/)?.[1] || '0')
-      if (isNaN(firstNum) || isNaN(lastNum) || firstNum > lastNum) return []
-      const prefix = first.replace(/\d+$/, '')
-      const thumbs = []
-      for (let i = firstNum; i <= lastNum; i++) {
-        thumbs.push(`${prefix}${i}`)
-      }
-      return thumbs
-    },
-  },
-  methods: {
     displayName,
     handleImgError(e) {
       e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600"><rect fill="%231a1a2e" width="400" height="600"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%236B6B8A" font-size="14">暂无封面</text></svg>'
