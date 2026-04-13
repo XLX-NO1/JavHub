@@ -72,6 +72,27 @@
             </div>
           </div>
 
+          <!-- 元数据（来自 MetaTube） -->
+          <div class="modal-section">
+            <h4 class="section-title">简介</h4>
+            <div class="meta-info-block">
+              <div v-if="video.director" class="meta-row">
+                <span class="meta-label">导演</span>
+                <span class="meta-value">{{ video.director }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">评分</span>
+                <span v-if="video.score && video.score > 0" class="meta-value">
+                  {{ video.score.toFixed(1) }}
+                  <span v-if="video.meta_provider" class="meta-provider">({{ video.meta_provider }})</span>
+                </span>
+                <span v-else class="meta-value meta-value--empty">无</span>
+              </div>
+            </div>
+            <p v-if="video.summary" class="summary-text">{{ video.summary }}</p>
+            <p v-else class="summary-text summary-text--empty">暂无简介</p>
+          </div>
+
           <!-- 演员 -->
           <div v-if="video.actresses && video.actresses.length" class="modal-section">
             <h4 class="section-title">演员</h4>
@@ -621,6 +642,40 @@ export default {
   padding: 16px;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/* 元数据区块 */
+.meta-info-block {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  margin-bottom: 10px;
+}
+
+.meta-provider {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.summary-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.summary-text--empty {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* 剧照画廊 */
