@@ -5,7 +5,7 @@ from database import get_all_missing_summaries, get_missing_summary
 from modules.emby_client import get_emby_client
 from modules.info_client import get_info_client
 
-router = APIRouter(prefix="/api/missing", tags=["missing"])
+router = APIRouter(prefix="/api/v1/missing", tags=["missing"])
 
 @router.get("/actresses")
 async def list_missing_actresses() -> dict[str, Any]:

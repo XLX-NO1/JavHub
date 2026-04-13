@@ -98,81 +98,81 @@ export default {
   // ========== 下载管理 ==========
 
   getDownloads() {
-    return api.get('/downloads')
+    return api.get('/v1/downloads')
   },
 
   createDownload(data) {
-    return api.post('/downloads', data)
+    return api.post('/v1/downloads', data)
   },
 
   deleteDownload(taskId) {
-    return api.delete(`/downloads/${taskId}`)
+    return api.delete(`/v1/downloads/${taskId}`)
   },
 
   // ========== 订阅管理 ==========
 
   getSubscriptions() {
-    return api.get('/subscriptions')
+    return api.get('/v1/subscriptions')
   },
 
   addSubscription(data) {
-    return api.post('/subscriptions', data)
+    return api.post('/v1/subscriptions', data)
   },
 
   deleteSubscription(id) {
-    return api.delete(`/subscriptions/${id}`)
+    return api.delete(`/v1/subscriptions/${id}`)
   },
 
   checkSubscriptions() {
-    return api.post('/subscriptions/check')
+    return api.post('/v1/subscriptions/check')
   },
 
   // ========== 缺失检测 ==========
 
   getMissingActresses() {
-    return api.get('/missing/actresses')
+    return api.get('/v1/missing/actresses')
   },
 
   getMissingActressDetail(actressId) {
-    return api.get(`/missing/actresses/${actressId}`)
+    return api.get(`/v1/missing/actresses/${actressId}`)
   },
 
   refreshMissingCache() {
-    return api.post('/missing/actresses/refresh')
+    return api.post('/v1/missing/actresses/refresh')
   },
 
   // ========== 去重 ==========
 
   getDuplicates() {
-    return api.get('/duplicates')
+    return api.get('/v1/duplicates')
   },
 
   deleteDuplicate(embyItemId) {
-    return api.post(`/duplicates/${embyItemId}/delete`)
+    return api.post(`/v1/duplicates/${embyItemId}/delete`)
   },
 
   ignoreDuplicate(embyItemId) {
-    return api.post(`/duplicates/${embyItemId}/ignore`)
+    return api.post(`/v1/duplicates/${embyItemId}/ignore`)
   },
 
   // ========== 日志 ==========
 
   getLogs(limit = 100, level = '') {
-    return api.get('/logs', { params: { limit, level } })
+    return api.get('/v1/logs', { params: { limit, level } })
   },
 
   // ========== 配置 ==========
 
   getConfig() {
-    return api.get('/config')
+    return api.get('/v1/config')
   },
 
   updateConfig(config) {
-    return api.put('/config', config)
+    return api.put('/v1/config', config)
   },
 
   purgeCache(scope = 'video') {
-    return api.post('/cache/purge', null, { params: { scope } })
+    return api.post('/v1/cache/purge', null, { params: { scope } })
   },
 
   // ========== 图片代理 ==========
@@ -184,19 +184,19 @@ export default {
   // ========== 翻译映射 ==========
 
   exportTranslations(type) {
-    return api.get(`/translations/export/${type}`, { responseType: 'blob' })
+    return api.get(`/v1/translations/export/${type}`, { responseType: 'blob' })
   },
 
   importTranslations(type, file) {
     const form = new FormData()
     form.append('file', file)
-    return api.post(`/translations/import/${type}`, form, {
+    return api.post(`/v1/translations/import/${type}`, form, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
 
   getTranslationStats() {
-    return api.get('/translations/stats')
+    return api.get('/v1/translations/stats')
   },
 
   // ========== 健康检查 ==========

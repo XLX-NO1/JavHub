@@ -5,7 +5,7 @@ import io
 
 from database import get_all_translations, import_translations, get_translation_count
 
-router = APIRouter(prefix="/api/translations", tags=["translations"])
+router = APIRouter(prefix="/api/v1/translations", tags=["translations"])
 
 VALID_TYPES = {"actress", "category", "series", "title"}
 

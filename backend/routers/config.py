@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from config import config
 from services import cache
 
-router = APIRouter(prefix="/api", tags=["config"])
+router = APIRouter(prefix="/api/v1", tags=["config"])
 
 @router.get("/config")
 async def get_config():

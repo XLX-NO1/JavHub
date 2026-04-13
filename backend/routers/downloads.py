@@ -4,7 +4,7 @@ from typing import Any, Optional, Dict
 from database import get_download_tasks, delete_download_task
 from services.downloader import downloader_service
 
-router = APIRouter(prefix="/api/downloads", tags=["downloads"])
+router = APIRouter(prefix="/api/v1/downloads", tags=["downloads"])
 
 class CreateDownloadRequest(BaseModel):
     content_id: str

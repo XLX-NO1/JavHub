@@ -4,7 +4,7 @@ from database import add_ignored_duplicate, is_duplicate_ignored
 from modules.emby_client import get_emby_client
 from modules.info_client import get_info_client
 
-router = APIRouter(prefix="/api/duplicates", tags=["duplicates"])
+router = APIRouter(prefix="/api/v1/duplicates", tags=["duplicates"])
 
 @router.get("")
 async def list_duplicates() -> dict[str, Any]:

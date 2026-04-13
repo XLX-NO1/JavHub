@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from typing import List
 from database import add_log, get_db
 
-router = APIRouter(prefix="/api/logs", tags=["logs"])
+router = APIRouter(prefix="/api/v1/logs", tags=["logs"])
 
 @router.get("")
 async def get_logs(limit: int = 100, level: str = None):

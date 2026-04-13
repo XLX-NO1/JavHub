@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Any
 from database import add_subscription, get_subscriptions, delete_subscription
 
-router = APIRouter(prefix="/api/subscriptions", tags=["subscriptions"])
+router = APIRouter(prefix="/api/v1/subscriptions", tags=["subscriptions"])
 
 class CreateSubscriptionRequest(BaseModel):
     actress_id: int

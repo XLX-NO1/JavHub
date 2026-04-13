@@ -1,6 +1,11 @@
 import yaml
+import os
 from pathlib import Path
 from typing import Optional
+
+def _env(key: str, default: str = '') -> str:
+    """读取环境变量，环境变量有值时优先于配置文件"""
+    return os.getenv(key) or default
 
 class Config:
     _instance: Optional['Config'] = None
@@ -29,11 +34,11 @@ class Config:
 
     @property
     def openlist_username(self) -> str:
-        return self._config.get('openlist', {}).get('username', '')
+        return _env('OPENLIST_USERNAME', self._config.get('openlist', {}).get('username', ''))
 
     @property
     def openlist_password(self) -> str:
-        return self._config.get('openlist', {}).get('password', '')
+        return _env('OPENLIST_PASSWORD', self._config.get('openlist', {}).get('password', ''))
 
     @property
     def openlist_token(self) -> str:
@@ -49,7 +54,7 @@ class Config:
 
     @property
     def emby_api_key(self) -> str:
-        return self._config.get('emby', {}).get('api_key', '')
+        return _env('EMBY_API_KEY', self._config.get('emby', {}).get('api_key', ''))
 
     @property
     def emby(self) -> dict:
@@ -57,7 +62,7 @@ class Config:
 
     @property
     def telegram_bot_token(self) -> str:
-        return self._config.get('telegram', {}).get('bot_token', '')
+        return _env('TELEGRAM_BOT_TOKEN', self._config.get('telegram', {}).get('bot_token', ''))
 
     @property
     def telegram_allowed_users(self) -> list:
@@ -82,7 +87,7 @@ class Config:
 
     @property
     def javinfo_api_url(self) -> str:
-        return self._config.get('javinfo', {}).get('api_url', 'http://localhost:8080')
+        return _env('JAVINFO_API_URL', self._config.get('javinfo', {}).get('api_url', 'http://localhost:8080'))
 
     @property
     def javinfo_timeout(self) -> int:
@@ -103,7 +108,7 @@ class Config:
 
     @property
     def metatube_token(self) -> str:
-        return self._config.get('metatube', {}).get('token', '')
+        return _env('METATUBE_TOKEN', self._config.get('metatube', {}).get('token', ''))
 
     # Download sources settings
     @property
