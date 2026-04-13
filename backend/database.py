@@ -210,15 +210,50 @@ def get_db_orig():
     conn.row_factory = sqlite3.Row
     return conn
 
+def _migrate_download_tasks():
+    """将 download_tasks.id 从 TEXT 迁移到 INTEGER（自动修复，只执行一次）"""
+    try:
+        conn = get_db_orig()
+        cursor = conn.cursor()
+        # 检查 id 列类型
+        cursor.execute("PRAGMA table_info(download_tasks)")
+        cols = {row[1]: row[2] for row in cursor.fetchall()}
+        conn.close()
+        if cols.get("id") == "TEXT":
+            # 数据迁移：重建表
+            conn2 = get_db_orig()
+            cursor2 = conn2.cursor()
+            cursor2.execute("ALTER TABLE download_tasks RENAME TO download_tasks_old")
+            cursor2.execute('''
+                CREATE TABLE download_tasks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    content_id TEXT,
+                    title TEXT,
+                    magnet TEXT,
+                    path TEXT,
+                    status TEXT DEFAULT 'pending',
+                    error_msg TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT
+                )
+            ''')
+            cursor2.execute(f"INSERT INTO download_tasks (content_id, title, magnet, path, status, error_msg, created_at, updated_at) SELECT content_id, title, magnet, path, status, error_msg, created_at, updated_at FROM download_tasks_old")
+            cursor2.execute("DROP TABLE download_tasks_old")
+            conn2.commit()
+            conn2.close()
+    except Exception as e:
+        pass  # 表不存在或有其他问题，跳过
+
 def init_db():
     DB_PATH_ORIG.parent.mkdir(parents=True, exist_ok=True)
     init_translation_db()
+    _migrate_download_tasks()
     conn = get_db_orig()
     cursor = conn.cursor()
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS download_tasks (
-            id TEXT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             content_id TEXT,
             title TEXT,
             magnet TEXT,

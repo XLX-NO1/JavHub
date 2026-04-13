@@ -9,28 +9,30 @@ logger = logging.getLogger(__name__)
 
 scheduler = BackgroundScheduler()
 
+# 防重入标志
+_running = False
+
 
 def subscription_check_job():
     """定时检查订阅任务"""
+    global _running
+    if _running:
+        add_log("WARNING", "订阅检查任务正在执行，跳过本次触发（防重入）")
+        return
+
     add_log("INFO", "开始订阅检查...")
+    _running = True
     try:
-        # 使用新的 subscription 服务
         from services.subscription import check_all_subscriptions
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            new_movies = loop.run_until_complete(check_all_subscriptions())
-        finally:
-            loop.close()
+        # asyncio.run() 管理自己的 loop，避免重复创建/关闭
+        new_movies = asyncio.run(check_all_subscriptions())
 
         for movie in new_movies:
-            # 自动下载
             add_log("INFO", f"自动下载: {movie['code']}")
             # TODO: 调用 OpenList 下载
             # from modules.openlist_client import get_openlist_client
-            # openlist = get_openlist_client()
-            # await openlist.add_offline_download(magnet, path)
+            # asyncio.run(openlist.add_offline_download(...))
 
         add_log("INFO", f"订阅检查完成，发现 {len(new_movies)} 部新片")
 
@@ -38,17 +40,14 @@ def subscription_check_job():
         if new_movies:
             try:
                 from services.notification import notification_service
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                try:
-                    loop.run_until_complete(notification_service.notify_new_movies(new_movies))
-                finally:
-                    loop.close()
+                asyncio.run(notification_service.notify_new_movies(new_movies))
             except Exception as e:
                 logger.error(f"Notification failed: {e}")
 
     except Exception as e:
         add_log("ERROR", f"订阅检查失败: {e}")
+    finally:
+        _running = False
 
 
 def start_scheduler():
