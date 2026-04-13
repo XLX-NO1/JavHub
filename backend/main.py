@@ -16,6 +16,7 @@ from routers.duplicates import router as duplicates_router
 from routers.config import router as config_router
 from routers.logs import router as logs_router
 from routers.health import router as health_router
+from routers.translation import router as translation_router
 
 app = FastAPI(title="AV Downloader API")
 
@@ -44,6 +45,7 @@ app.include_router(duplicates_router)
 app.include_router(config_router)
 app.include_router(logs_router)
 app.include_router(health_router)
+app.include_router(translation_router)
 
 
 @app.on_event("startup")

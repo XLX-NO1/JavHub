@@ -71,6 +71,46 @@
         </div>
       </div>
 
+      <!-- 翻译映射 -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M5 8l6 6"/>
+            <path d="M4 14l6-6 2-2"/>
+            <path d="M2 5h12"/>
+            <path d="M7 2v3"/>
+            <path d="M22 22l-5-10-5 10"/>
+            <path d="M14 18h6"/>
+          </svg>
+          <h2>翻译映射</h2>
+        </div>
+        <div class="form-group">
+          <label>映射类型</label>
+          <div class="form-row">
+            <select class="input" v-model="translationType" style="flex:1">
+              <option value="actress">演员</option>
+              <option value="category">题材</option>
+              <option value="series">系列</option>
+              <option value="title">标题</option>
+            </select>
+            <button class="btn btn-primary" @click="loadTransStats" title="刷新">↻</button>
+          </div>
+        </div>
+        <div v-if="transStats[translationType] !== undefined" class="trans-stat">
+          当前 {{ translationTypeLabels[translationType] }} 已翻译 <strong>{{ transStats[translationType] }}</strong> 条
+        </div>
+        <div class="trans-actions">
+          <button class="btn btn-ghost" @click="exportTranslation">
+            导出 {{ translationTypeLabels[translationType] }}
+          </button>
+          <label class="btn btn-ghost trans-import-btn">
+            导入 {{ translationTypeLabels[translationType] }}
+            <input type="file" accept=".json" style="display:none" @change="importTranslation" />
+          </label>
+        </div>
+        <div v-if="transMsg" class="trans-msg" :class="transMsgType">{{ transMsg }}</div>
+      </div>
+
       <!-- MetaTube -->
       <div class="settings-card">
         <div class="settings-card-header">
@@ -411,6 +451,11 @@ export default {
         metatube: { host: '154.23.255.204', port: 8081, token: '' },
       },
       telegramUsers: '',
+      translationType: 'actress',
+      translationTypeLabels: { actress: '演员', category: '题材', series: '系列', title: '标题' },
+      transStats: {},
+      transMsg: '',
+      transMsgType: 'info',
       saving: false,
       themes: THEMES,
       currentTheme: localStorage.getItem('javhub_theme') || 'midnight',
@@ -491,6 +536,7 @@ export default {
       console.error('Failed to load config:', e)
     }
     this.loadBubbleCfg()
+    this.loadTransStats()
   },
   methods: {
     async save() {
@@ -541,6 +587,46 @@ export default {
     switchTheme(key) {
       applyTheme(key)
       this.currentTheme = key
+    },
+    async loadTransStats() {
+      try {
+        const resp = await api.getTranslationStats()
+        this.transStats = resp.data
+      } catch (e) {
+        console.error('Failed to load translation stats:', e)
+      }
+    },
+    async exportTranslation() {
+      try {
+        const resp = await api.exportTranslations(this.translationType)
+        const url = window.URL.createObjectURL(new Blob([resp.data]))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `translations_${this.translationType}.json`
+        a.click()
+        window.URL.revokeObjectURL(url)
+        this.transMsg = `导出成功：translations_${this.translationType}.json`
+        this.transMsgType = 'success'
+      } catch (e) {
+        console.error('Export failed:', e)
+        this.transMsg = '导出失败'
+        this.transMsgType = 'error'
+      }
+    },
+    async importTranslation(event) {
+      const file = event.target.files[0]
+      if (!file) return
+      try {
+        const resp = await api.importTranslations(this.translationType, file)
+        this.transMsg = `导入成功：${resp.data.imported} 条已更新`
+        this.transMsgType = 'success'
+        await this.loadTransStats()
+      } catch (e) {
+        console.error('Import failed:', e)
+        this.transMsg = '导入失败：' + (e.response?.data?.detail || e.message)
+        this.transMsgType = 'error'
+      }
+      event.target.value = ''
     }
   }
 }
@@ -852,5 +938,41 @@ export default {
   border-color: var(--text-primary);
   transform: scale(1.15);
   box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px currentColor;
+}
+
+/* 翻译映射 */
+.trans-stat {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.trans-stat strong {
+  color: var(--accent);
+}
+.trans-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.trans-import-btn {
+  cursor: pointer;
+}
+.trans-msg {
+  margin-top: 10px;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+}
+.trans-msg.success {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4CAF50;
+}
+.trans-msg.error {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+}
+.trans-msg.info {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
 }
 </style>

@@ -36,7 +36,7 @@
 
           <!-- 标题 -->
           <div class="modal-title-block">
-            <h2 class="modal-title">{{ video.title_en || video.title_ja }}</h2>
+            <h2 class="modal-title" v-html="titleDisplay()"></h2>
           </div>
 
           <!-- 基本数据 -->
@@ -66,29 +66,28 @@
             <div class="meta-row">
               <span class="meta-label">系列</span>
               <span v-if="video.series" class="meta-value clickable" @click="$emit('navigate', { type: 'series', item: video.series })">
-                {{ displayName(video.series) }}
+                <span v-html="itemDisplayName(video.series, 'name', 'name')"></span>
+              </span>
+              <span v-else class="meta-value meta-value--empty">无</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">导演</span>
+              <span v-if="video.director" class="meta-value">{{ video.director }}</span>
+              <span v-else class="meta-value meta-value--empty">无</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">评分</span>
+              <span v-if="video.score && video.score > 0" class="meta-value">
+                {{ video.score.toFixed(1) }}
+                <span v-if="video.meta_provider" class="meta-provider">({{ video.meta_provider }})</span>
               </span>
               <span v-else class="meta-value meta-value--empty">无</span>
             </div>
           </div>
 
-          <!-- 元数据（来自 MetaTube） -->
+          <!-- 简介 -->
           <div class="modal-section">
             <h4 class="section-title">简介</h4>
-            <div class="meta-info-block">
-              <div v-if="video.director" class="meta-row">
-                <span class="meta-label">导演</span>
-                <span class="meta-value">{{ video.director }}</span>
-              </div>
-              <div class="meta-row">
-                <span class="meta-label">评分</span>
-                <span v-if="video.score && video.score > 0" class="meta-value">
-                  {{ video.score.toFixed(1) }}
-                  <span v-if="video.meta_provider" class="meta-provider">({{ video.meta_provider }})</span>
-                </span>
-                <span v-else class="meta-value meta-value--empty">无</span>
-              </div>
-            </div>
             <p v-if="video.summary" class="summary-text">{{ video.summary }}</p>
             <p v-else class="summary-text summary-text--empty">暂无简介</p>
           </div>
@@ -112,7 +111,7 @@
                   />
                   <span v-else class="avatar-placeholder">{{ (displayName(actress, 'name_kanji', 'name_romaji') || '?')[0] }}</span>
                 </div>
-                <span class="actress-name">{{ displayName(actress, 'name_kanji', 'name_romaji') }}</span>
+                <span class="actress-name" v-html="transName(actress, 'name_kanji', 'name_romaji', 'name_kanji_translated', 'name_romaji_translated')"></span>
               </div>
             </div>
           </div>
@@ -127,7 +126,7 @@
                 class="actress-tag clickable"
                 @click="$emit('navigate', { type: 'category', item: cat })"
               >
-                {{ displayName(cat) }}
+                <span v-html="itemDisplayName(cat) || displayName(cat)"></span>
               </span>
             </div>
           </div>
@@ -193,7 +192,7 @@
 </template>
 
 <script>
-import { displayName } from '../utils/displayLang.js'
+import { displayName, displayLang } from '../utils/displayLang.js'
 import { jacketFullUrl, galleryFullUrl, galleryThumbUrl } from '../utils/imageUrl.js'
 
 export default {
@@ -208,10 +207,53 @@ export default {
       currentGalleryIndex: 0,
     }
   },
-  computed: {
-    magnets() {
-      if (!this.video) return []
-      if (this.video.magnets && Array.isArray(this.video.magnets)) {
+  methods: {
+    // 返回翻译名称的 HTML：有译文时 "译文(原文)"，原文小字体
+    transName(item, jaField, enField, jaTransField, enTransField) {
+      if (!item) return ''
+      const lang = displayLang.value
+      const orig = lang === 'en' ? (item[enField] || item[jaField] || '') : (item[jaField] || item[enField] || '')
+      const trans = lang === 'en' ? (item[enTransField] || '') : (item[jaTransField] || '')
+      if (trans && trans !== orig) {
+        return `${this.escapeHtml(trans)}<small class="orig-name">(${this.escapeHtml(orig)})</small>`
+      }
+      return this.escapeHtml(orig)
+    },
+    // 返回影片标题的翻译显示
+    titleDisplay() {
+      if (!this.video) return ''
+      const lang = displayLang.value
+      const orig = lang === 'en'
+        ? (this.video.title_en || this.video.title_ja || '')
+        : (this.video.title_ja || this.video.title_en || '')
+      const trans = lang === 'en'
+        ? (this.video.title_en_translated || '')
+        : (this.video.title_ja_translated || '')
+      if (trans && trans !== orig) {
+        return `${this.escapeHtml(trans)}<small class="orig-name">(${this.escapeHtml(orig)})</small>`
+      }
+      return this.escapeHtml(orig)
+    },
+    escapeHtml(str) {
+      if (!str) return ''
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    },
+    // 通用的翻译+原文显示，item 可以是 actress/category/series
+    itemDisplayName(item, jaField = 'name_ja', enField = 'name_en') {
+      if (!item) return ''
+      const lang = displayLang.value
+      const orig = lang === 'en' ? (item[enField] || item[jaField] || '') : (item[jaField] || item[enField] || '')
+      // 尝试找翻译字段
+      const jaTrans = item[`${jaField}_translated`] || ''
+      const enTrans = item[`${enField}_translated`] || ''
+      const trans = lang === 'en' ? enTrans : jaTrans
+      if (trans && trans !== orig) {
+        return `${this.escapeHtml(trans)}<small class="orig-name">(${this.escapeHtml(orig)})</small>`
+      }
+      return this.escapeHtml(orig)
+    },
+    displayName,
+    handleImgError(e) {
         return this.video.magnets
       }
       return []
@@ -644,17 +686,6 @@ export default {
   font-size: 13px;
 }
 
-/* 元数据区块 */
-.meta-info-block {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0;
-  margin-bottom: 10px;
-}
-
 .meta-provider {
   font-size: 11px;
   color: var(--text-muted);
@@ -676,6 +707,13 @@ export default {
 .summary-text--empty {
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* 翻译原文小字 */
+.orig-name {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  margin-left: 2px;
 }
 
 /* 剧照画廊 */

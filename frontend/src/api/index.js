@@ -181,6 +181,24 @@ export default {
     return `/api/proxy/image?url=${encodeURIComponent(url)}`
   },
 
+  // ========== 翻译映射 ==========
+
+  exportTranslations(type) {
+    return api.get(`/translations/export/${type}`, { responseType: 'blob' })
+  },
+
+  importTranslations(type, file) {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`/translations/import/${type}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+
+  getTranslationStats() {
+    return api.get('/translations/stats')
+  },
+
   // ========== 健康检查 ==========
 
   health() {

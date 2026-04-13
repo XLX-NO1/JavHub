@@ -117,7 +117,9 @@
             <span class="card-code">{{ item.dvd_id || item.content_id }}</span>
             <span v-if="item.service_code" class="card-type" :class="'type-' + item.service_code">{{ formatServiceCode(item.service_code) }}</span>
           </div>
-          <div class="card-title" :title="item.title_en || item.title_ja">{{ item.title_en || item.title_ja }}</div>
+          <div class="card-title" :title="item.title_en || item.title_ja">
+            {{ item.title_en_translated || item.title_ja_translated || item.title_en || item.title_ja }}
+          </div>
           <div class="card-meta">
             <span v-if="item.release_date" class="meta-date">{{ item.release_date }}</span>
             <span v-if="item.runtime_mins" class="meta-time">{{ item.runtime_mins }}分钟</span>

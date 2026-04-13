@@ -1,8 +1,16 @@
 from fastapi import APIRouter, Query
 from typing import Any, Optional, Dict
 from modules.info_client import get_info_client
+from services.translation import apply_translation
 
 router = APIRouter(prefix="/api/v1/videos", tags=["videos"])
+
+def _apply_translation_to_video(data: dict) -> dict:
+    """对单条影片数据应用翻译"""
+    content_id = data.get("content_id") or data.get("dvd_id", "").replace("-", "").replace("_", "").lower()
+    if not content_id:
+        return data
+    return apply_translation(content_id, data)
 
 @router.get("/search")
 async def search_videos(
@@ -20,13 +28,16 @@ async def search_videos(
     page_size: int = Query(20, ge=1, le=100),
 ) -> Dict[str, Any]:
     client = get_info_client()
-    return await client.search_videos(
+    result = await client.search_videos(
         q=q, content_id=content_id, maker_id=maker_id, maker_name=maker_name,
         series_id=series_id, series_name=series_name,
         actress_id=actress_id, actress_name=actress_name,
         category_id=category_id, category_name=category_name,
         page=page, page_size=page_size
     )
+    if result.get("data"):
+        result["data"] = [_apply_translation_to_video(item) for item in result["data"]]
+    return result
 
 @router.get("")
 async def list_videos(
@@ -34,9 +45,13 @@ async def list_videos(
     page_size: int = Query(20, ge=1, le=100),
 ) -> Dict[str, Any]:
     client = get_info_client()
-    return await client.list_videos(page=page, page_size=page_size)
+    result = await client.list_videos(page=page, page_size=page_size)
+    if result.get("data"):
+        result["data"] = [_apply_translation_to_video(item) for item in result["data"]]
+    return result
 
 @router.get("/{content_id}")
 async def get_video(content_id: str, service_code: Optional[str] = Query(None)) -> Dict[str, Any]:
     client = get_info_client()
-    return await client.get_video(content_id, service_code=service_code)
+    data = await client.get_video(content_id, service_code=service_code)
+    return _apply_translation_to_video(data)

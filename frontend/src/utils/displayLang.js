@@ -29,3 +29,30 @@ export function displayName(item, jaField = 'name_ja', enField = 'name_en') {
   const en = item[enField]
   return displayLang.value === 'en' ? (en || ja || '') : (ja || en || '')
 }
+
+/**
+ * 返回翻译后的显示名称。
+ * 有译文时格式："译文(原文)"，原文小字体。
+ * 无译文时直接返回原文。
+ * @param {object} item - 含字段的对象
+ * @param {string} jaField - 日文原文字段名
+ * @param {string} enField - 英文原文字段名
+ * @param {string} jaTranslatedField - 日文译文字段名（可选）
+ * @param {string} enTranslatedField - 英文译文字段名（可选）
+ */
+export function translatedName(item, jaField = 'name_ja', enField = 'name_en',
+                               jaTranslatedField = null, enTranslatedField = null) {
+  if (!item) return ''
+  const ja = item[jaField] || ''
+  const en = item[enField] || ''
+  const jaTrans = jaTranslatedField ? (item[jaTranslatedField] || '') : ''
+  const enTrans = enTranslatedField ? (item[enTranslatedField] || '') : ''
+
+  const useTrans = displayLang.value === 'en' ? enTrans : jaTrans
+  const useOrig = displayLang.value === 'en' ? en : ja
+
+  if (useTrans && useTrans !== useOrig) {
+    return { translated: useTrans, original: useOrig }
+  }
+  return { translated: useOrig, original: '' }
+}
