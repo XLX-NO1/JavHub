@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from typing import List
-from database import add_log, get_db
+from database import add_log, get_db_orig
 
 router = APIRouter(prefix="/api/v1/logs", tags=["logs"])
 
@@ -11,7 +11,7 @@ async def get_logs(limit: int = 100, level: str = None):
     limit: 返回数量，默认100
     level: 过滤级别 (INFO/WARNING/ERROR)
     """
-    conn = get_db()
+    conn = get_db_orig()
     cursor = conn.cursor()
 
     if level:
@@ -39,7 +39,7 @@ async def add_log_entry(level: str, message: str):
 @router.delete("")
 async def clear_logs():
     """清空日志"""
-    conn = get_db()
+    conn = get_db_orig()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM logs')
     conn.commit()

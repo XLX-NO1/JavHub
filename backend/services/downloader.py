@@ -1,3 +1,4 @@
+import logging
 import httpx
 import asyncio
 from typing import Optional
@@ -5,6 +6,8 @@ from config import config
 from database import create_download_task, update_task_status, get_download_tasks, add_log
 from services.openlist import openlist_client
 from services.notification import notification_service
+
+logger = logging.getLogger(__name__)
 
 class DownloaderService:
     """下载调度服务"""
@@ -106,7 +109,7 @@ class DownloaderService:
             if task['status'] == 'downloading':
                 try:
                     self.poll_task_status(task['id'])
-                except:
-                    pass
+                except Exception as e:
+                    logger.warning(f"轮询任务状态失败 task_id={task['id']}: {e}")
 
 downloader_service = DownloaderService()

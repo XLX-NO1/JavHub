@@ -30,10 +30,13 @@ def _transform_sample_url(sample_path: str | None) -> str | None:
 
 
 def _transform_video_item(item: dict) -> dict:
-    """转换视频项的图片URL和预览视频URL为完整路径"""
+    """转换视频项的图片URL和预览视频URL为完整路径，统一 content_id 命名"""
     if not item:
         return item
     item = dict(item)
+    # JavInfoApi 返回 dvd_id，内部统一规范化为 content_id
+    if "dvd_id" in item and "content_id" not in item:
+        item["content_id"] = item.pop("dvd_id")
     if "jacket_thumb_url" in item:
         item["jacket_thumb_url"] = _transform_jacket_url(item.get("jacket_thumb_url"))
     if "jacket_full_url" in item:

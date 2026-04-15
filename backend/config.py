@@ -1,5 +1,6 @@
 import yaml
 import os
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -10,11 +11,14 @@ def _env(key: str, default: str = '') -> str:
 class Config:
     _instance: Optional['Config'] = None
     _config: dict = {}
+    _lock = threading.Lock()
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._load()
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._load()
         return cls._instance
 
     def _load(self):
@@ -67,6 +71,10 @@ class Config:
     @property
     def telegram_allowed_users(self) -> list:
         return self._config.get('telegram', {}).get('allowed_user_ids', [])
+
+    @property
+    def telegram_timeout(self) -> int:
+        return self._config.get('telegram', {}).get('timeout', 10)
 
     @property
     def telegram(self) -> dict:

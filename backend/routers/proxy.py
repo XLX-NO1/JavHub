@@ -1,10 +1,32 @@
 from typing import Optional
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from fastapi.responses import StreamingResponse
 import httpx
 from config import config
 
 router = APIRouter(prefix="/api/proxy", tags=["proxy"])
+
+# 允许代理的图片域名白名单（防 SSRF）
+ALLOWED_IMAGE_DOMAINS = {
+    "pics.dmm.co.jp",
+    "javbus.com",
+    "javcdn.com",
+    "javlink.com",
+    "dmm.co.jp",
+    "amazonaws.com",
+}
+
+
+def _is_url_allowed(url: str) -> bool:
+    """验证 URL 域名是否在白名单内"""
+    from urllib.parse import urlparse
+    try:
+        parsed = urlparse(url)
+        domain = parsed.netloc.lower()
+        # 检查是否以某个白名单域名结尾
+        return any(domain.endswith(allowed) or domain == allowed for allowed in ALLOWED_IMAGE_DOMAINS)
+    except Exception:
+        return False
 
 
 def _get_httpx_proxies() -> Optional[dict]:
@@ -24,6 +46,8 @@ def _get_httpx_proxies() -> Optional[dict]:
 @router.get("/image")
 async def proxy_image(url: str = Query(...)):
     """代理图片请求，避免CORS问题"""
+    if not _is_url_allowed(url):
+        raise HTTPException(status_code=403, detail="URL not allowed")
     proxies = _get_httpx_proxies()
     try:
         async with httpx.AsyncClient(timeout=30, proxies=proxies) as client:

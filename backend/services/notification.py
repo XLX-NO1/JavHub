@@ -17,6 +17,7 @@ class NotificationService:
         self.new_movie_notify = config.notification_new_movie
         self.bot_token = config.telegram_bot_token
         self.allowed_users = config.telegram_allowed_users
+        self.telegram_timeout = config.telegram_timeout
 
     async def send_telegram_message(self, user_id: str, text: str) -> bool:
         """发送Telegram消息"""
@@ -32,7 +33,7 @@ class NotificationService:
                     "text": text,
                     "parse_mode": "Markdown"
                 },
-                timeout=10
+                timeout=self.telegram_timeout
             )
             return resp.status_code == 200
         except Exception as e:
@@ -41,7 +42,7 @@ class NotificationService:
 
     async def notify_new_movies(self, movies: List[dict]):
         """通知发现新片"""
-        if not self.enabled or not self.notification_telegram:
+        if not self.enabled or not self.telegram_notify:
             return
 
         if not movies:

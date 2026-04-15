@@ -5,8 +5,10 @@ from pathlib import Path
 from typing import Optional
 
 DB_PATH = Path(__file__).parent.parent / "data" / "avdownloader.db"
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-def get_db():
+def _get_translation_db():
+    """翻译映射数据库连接"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -20,7 +22,7 @@ def get_db():
 
 def init_translation_db():
     """初始化翻译映射表"""
-    conn = get_db()
+    conn = _get_translation_db()
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS translation_mappings (
@@ -37,7 +39,7 @@ def init_translation_db():
 
 def _get_raw(content_id: str) -> Optional[dict]:
     """获取原始记录"""
-    conn = get_db()
+    conn = _get_translation_db()
     cursor = conn.cursor()
     cursor.execute(
         "SELECT actress_json, category_json, series_json, title_json, maker_json, label_json FROM translation_mappings WHERE content_id = ?",
@@ -79,7 +81,7 @@ def get_translation(content_id: str) -> Optional[dict]:
 def upsert_translation(content_id: str, mapping: dict) -> bool:
     """插入或更新翻译映射（部分更新）"""
     existing = _get_raw(content_id)
-    conn = get_db()
+    conn = _get_translation_db()
     cursor = conn.cursor()
     if existing:
         merged = {
@@ -125,7 +127,7 @@ def get_all_translations(mapping_type: str) -> dict:
     field = field_map.get(mapping_type)
     if not field:
         return {}
-    conn = get_db()
+    conn = _get_translation_db()
     cursor = conn.cursor()
     cursor.execute(f"SELECT content_id, {field} FROM translation_mappings")
     rows = cursor.fetchall()
@@ -179,7 +181,7 @@ def get_translation_count(mapping_type: str) -> int:
     category/series: 统计 global key 里的 kv 对数量。
     title: 统计有 title 翻译的 content_id 行数。
     """
-    conn = get_db()
+    conn = _get_translation_db()
     cursor = conn.cursor()
     if mapping_type == "actress":
         # actress:{id} → {name: translated}
@@ -319,8 +321,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Alias for existing code that imports from database.py
-get_db = get_db_orig
+# get_db removed - use explicit get_db_orig() or _get_translation_db()
 
 # === Download Tasks ===
 

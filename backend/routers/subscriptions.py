@@ -32,5 +32,6 @@ async def remove_subscription(subscription_id: int) -> dict[str, Any]:
 @router.post("/check")
 async def check_subscriptions() -> dict[str, Any]:
     """手动检查订阅更新"""
-    # TODO: 调用 SubscriptionService.check_all()
-    return {"status": "ok", "new_found": 0}
+    from services.subscription import check_all_subscriptions
+    new_movies = await check_all_subscriptions()
+    return {"status": "ok", "new_found": len(new_movies), "movies": new_movies}

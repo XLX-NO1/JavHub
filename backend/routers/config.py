@@ -7,7 +7,9 @@ router = APIRouter(prefix="/api/v1", tags=["config"])
 
 @router.get("/config")
 async def get_config():
-    return config.get_all()
+    sensitive_keys = {'api_key', 'bot_token', 'password', 'secret', 'db_pass', 'jwt_secret'}
+    all_config = config.get_all()
+    return {k: v for k, v in all_config.items() if k not in sensitive_keys}
 
 @router.put("/config")
 async def update_config(new_config: dict):

@@ -1,7 +1,16 @@
 import asyncio
+import logging
+import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
 
 # 导入新模块化路由
 from routers.videos import router as videos_router
@@ -21,12 +30,21 @@ from routers.proxy import router as proxy_router
 
 app = FastAPI(title="AV Downloader API")
 
-# CORS
+# CORS - 默认仅允许本地开发前端，部署时通过配置覆盖
+_frontend_origin = "http://localhost:5173"  # Vite dev server
+try:
+    from config import config as _cfg
+    _origin = getattr(_cfg, 'frontend_origin', None)
+    if _origin:
+        _frontend_origin = _origin
+except Exception:
+    pass
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[_frontend_origin],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

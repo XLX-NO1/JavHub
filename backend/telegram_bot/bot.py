@@ -1,4 +1,5 @@
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from telegram import Update, BotCommand
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from config import config
 
 def create_bot() -> Application:
@@ -8,9 +9,9 @@ def create_bot() -> Application:
     app = Application.builder().token(bot_token).build()
 
     # 注册命令处理器
-    from handlers.search import search_handler, download_callback, callback_handler as search_callback_handler
-    from handlers.subscription import sub_add_handler, sub_del_handler, sub_list_handler
-    from handlers.status import status_handler
+    from telegram_bot.handlers.search import search_handler, download_callback, callback_handler as search_callback_handler
+    from telegram_bot.handlers.subscription import sub_add_handler, sub_del_handler, sub_list_handler
+    from telegram_bot.handlers.status import status_handler
 
     app.add_handler(CommandHandler("search", search_handler))
     app.add_handler(CommandHandler("sub", lambda update, context: handle_sub_command(update, context)))
@@ -65,5 +66,30 @@ async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def start_polling():
     """启动 Bot 轮询"""
+    import threading
+    import asyncio
+
     app = create_bot()
-    await app.run_polling()
+    await app.initialize()
+
+    # 注册 bot 命令菜单（initialize 之后 bot 才真正连接）
+    await app.bot.set_my_commands([
+        BotCommand("search", "搜索影片"),
+        BotCommand("sub", "订阅管理"),
+        BotCommand("status", "下载队列"),
+        BotCommand("check", "检查订阅更新"),
+        BotCommand("help", "帮助"),
+    ])
+
+    # 在独立线程里跑 run_polling（子线程需要自己的 loop）
+    def _run():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(app.run_polling(stop_signals=None))
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+
+    # 阻塞等待 daemon 线程
+    while t.is_alive():
+        await asyncio.sleep(0.5)
