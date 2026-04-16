@@ -108,7 +108,7 @@
                   />
                   <span v-else class="avatar-placeholder">{{ (displayName(actress, 'name_kanji', 'name_romaji') || '?')[0] }}</span>
                 </div>
-                <span class="actress-name" v-html="transName(actress, 'name_kanji', 'name_romaji', 'name_kanji_translated', 'name_romaji_translated')"></span>
+                <div class="actress-name" v-html="actressNameDisplay(actress)"></div>
               </div>
             </div>
           </div>
@@ -321,6 +321,21 @@ export default {
         return `${this.escapeHtml(trans)}<small class="orig-name">(${this.escapeHtml(orig)})</small>`
       }
       return this.escapeHtml(orig)
+    },
+    // 演员名称：上为原文，下为译文（仅详情卡片头像下方使用）
+    actressNameDisplay(actress) {
+      if (!actress) return ''
+      const lang = displayLang.value
+      const orig = lang === 'en'
+        ? (actress.name_romaji || actress.name_kanji || '')
+        : (actress.name_kanji || actress.name_romaji || '')
+      const trans = lang === 'en'
+        ? (actress.name_romaji_translated || '')
+        : (actress.name_kanji_translated || '')
+      if (trans && trans !== orig) {
+        return `<span class="name-orig">${this.escapeHtml(orig)}</span><span class="name-translated">${this.escapeHtml(trans)}</span>`
+      }
+      return `<span class="name-orig">${this.escapeHtml(orig)}</span>`
     },
     // 返回影片标题的翻译显示
     titleDisplay() {
@@ -669,13 +684,32 @@ export default {
 }
 
 .actress-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
   font-size: 11px;
   color: var(--text-secondary);
   text-align: center;
   max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.actress-name .name-orig {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
+}
+
+.actress-name .name-translated {
+  font-size: 10px;
+  color: var(--accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .actress-avatar-item:hover .actress-name {
