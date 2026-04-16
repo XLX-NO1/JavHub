@@ -1,4 +1,4 @@
-// 全局显示语言配置：'ja' = 日文优先 | 'en' = 英文优先
+// 全局显示语言配置：'ja' = 日文优先 | 'en' = 英文优先 | 'zh' = 中文优先（翻译字段）
 // 模块级响应式，所有引用者共享同一个实例
 import { ref, watch } from 'vue'
 
@@ -6,7 +6,7 @@ const DISPLAY_LANG_KEY = 'javhub_display_lang'
 
 function createDisplayLang() {
   const stored = localStorage.getItem(DISPLAY_LANG_KEY)
-  const lang = ref(stored === 'en' ? 'en' : 'ja') // 默认日文
+  const lang = ref(stored === 'en' ? 'en' : (stored === 'zh' ? 'zh' : 'ja')) // 默认日文
 
   watch(lang, (val) => {
     localStorage.setItem(DISPLAY_LANG_KEY, val)
@@ -27,6 +27,12 @@ export function displayName(item, jaField = 'name_ja', enField = 'name_en') {
   if (!item) return ''
   const ja = item[jaField]
   const en = item[enField]
+  // zh 模式优先取翻译字段
+  if (displayLang.value === 'zh') {
+    const jaTrans = item[`${jaField}_translated`]
+    const enTrans = item[`${enField}_translated`]
+    return jaTrans || enTrans || ja || en || ''
+  }
   return displayLang.value === 'en' ? (en || ja || '') : (ja || en || '')
 }
 
@@ -48,8 +54,14 @@ export function translatedName(item, jaField = 'name_ja', enField = 'name_en',
   const jaTrans = jaTranslatedField ? (item[jaTranslatedField] || '') : ''
   const enTrans = enTranslatedField ? (item[enTranslatedField] || '') : ''
 
-  const useTrans = displayLang.value === 'en' ? enTrans : jaTrans
-  const useOrig = displayLang.value === 'en' ? en : ja
+  let useTrans, useOrig
+  if (displayLang.value === 'zh') {
+    useTrans = jaTrans
+    useOrig = ja
+  } else {
+    useTrans = displayLang.value === 'en' ? enTrans : jaTrans
+    useOrig = displayLang.value === 'en' ? en : ja
+  }
 
   if (useTrans && useTrans !== useOrig) {
     return { translated: useTrans, original: useOrig }

@@ -1,10 +1,11 @@
 <template>
   <div class="search-page">
-    <!-- 搜索区域 3×2 Grid -->
+    <!-- 搜索区域 -->
     <div class="search-hero">
       <h1 class="hero-title">影片搜索</h1>
       <div class="search-section">
-        <div class="search-row">
+        <!-- 主检索：番号 + 关键词 -->
+        <div class="search-row search-row-main">
           <div class="search-box-wrapper code-search">
             <div class="search-box">
               <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -23,50 +24,91 @@
               <input v-model="keyword" placeholder="标题" @keyup.enter="doSearch" class="search-input" />
             </div>
           </div>
-          <div class="search-box-wrapper">
-            <div class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input v-model="actressName" placeholder="演员" @keyup.enter="doSearch" class="search-input" />
-            </div>
-          </div>
-          <div class="search-box-wrapper">
-            <div class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input v-model="categoryName" placeholder="题材" @keyup.enter="doSearch" class="search-input" />
-            </div>
-          </div>
-          <div class="search-box-wrapper">
-            <div class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input v-model="seriesName" placeholder="系列" @keyup.enter="doSearch" class="search-input" />
-            </div>
-          </div>
-          <div class="search-box-wrapper year-search">
-            <input v-model.number="year" placeholder="年份" @keyup.enter="doSearch" class="year-input" type="number" min="1900" max="2100" />
-          </div>
-          <div class="search-box-wrapper">
-            <div class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input v-model="makerName" placeholder="工作室" @keyup.enter="doSearch" class="search-input" />
-            </div>
-          </div>
         </div>
-        <button @click="doSearch" :disabled="loading" class="main-search-btn">
-          <span v-if="loading" class="spinner"></span>
-          <span v-else>搜索</span>
-        </button>
+
+        <!-- 更多筛选（折叠） -->
+        <transition name="slide">
+          <div v-if="showMoreFilters" class="search-row search-row-more">
+            <!-- 题材占一整行：tag 输入 -->
+            <div class="search-box-wrapper full-width">
+              <div class="search-box tag-input-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <div class="tag-list">
+                  <span v-for="(tag, idx) in categoryTags" :key="idx" class="tag-chip">
+                    {{ tag }}
+                    <button class="tag-remove" @click="removeCategoryTag(idx)">×</button>
+                  </span>
+                  <input
+                    v-model="categoryInput"
+                    placeholder="题材（空格添加）"
+                    @keydown.space.prevent="addCategoryTag"
+                    @keydown.enter.prevent="addCategoryTag"
+                    @keyup.enter="doSearch"
+                    class="search-input tag-input"
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- 第二行：工作室(半) + 演员(半) -->
+            <div class="search-box-wrapper maker-half">
+              <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input v-model="makerName" placeholder="工作室" @keyup.enter="doSearch" class="search-input" />
+              </div>
+            </div>
+            <div class="search-box-wrapper">
+              <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input v-model="actressName" placeholder="演员" @keyup.enter="doSearch" class="search-input" />
+              </div>
+            </div>
+            <!-- 第三行：系列 + 年份 -->
+            <div class="search-box-wrapper">
+              <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input v-model="seriesName" placeholder="系列" @keyup.enter="doSearch" class="search-input" />
+              </div>
+            </div>
+            <div class="search-box-wrapper year-search">
+              <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <input v-model.number="year" placeholder="年份" @keyup.enter="doSearch" class="search-input year-input" type="number" min="1900" max="2100" />
+              </div>
+            </div>
+          </div>
+        </transition>
+
+        <!-- 操作栏 -->
+        <div class="search-actions">
+          <button class="more-filter-btn" @click="showMoreFilters = !showMoreFilters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path v-if="showMoreFilters" d="M18 15l-6-6-6 6"/>
+              <path v-else d="M6 9l6 6 6-6"/>
+            </svg>
+            {{ showMoreFilters ? '收起' : '更多筛选' }}
+          </button>
+          <button @click="doSearch" :disabled="loading" class="main-search-btn">
+            <span v-if="loading" class="spinner"></span>
+            <span v-else>搜索</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -196,6 +238,7 @@
 
     <!-- 影片详情弹窗 -->
     <VideoModal
+      :key="selectedVideo?.content_id || selectedVideo?.dvd_id"
       v-if="selectedVideo"
       :visible="!!selectedVideo"
       :video="selectedVideo"
@@ -226,12 +269,17 @@ export default {
 
       // 筛选
       categoryName: '',
+      categoryTags: [],
+      categoryInput: '',
       makerName: '',
       seriesName: '',
       actressName: '',
       year: null,
 
-      sortConditions: [{ value: '' }],
+      // 折叠更多筛选
+      showMoreFilters: false,
+
+      sortConditions: [{ value: 'random' }],
 
       // 分页
       page: 1,
@@ -243,7 +291,7 @@ export default {
   },
   computed: {
     hasFilters() {
-      return this.categoryName || this.keyword || this.contentId || this.makerName || this.seriesName || this.actressName
+      return this.categoryTags.length || this.keyword || this.contentId || this.makerName || this.seriesName || this.actressName
     }
   },
   mounted() {
@@ -281,6 +329,8 @@ export default {
       this.seriesName = ''
       this.actressName = ''
       this.categoryName = ''
+      this.categoryTags = []
+      this.categoryInput = ''
       this.year = null
       this.sortConditions = [{ value: '' }]
       this.results = []
@@ -288,7 +338,9 @@ export default {
     },
     searchByCategory(categoryName) {
       this.closeModal()
-      this.categoryName = categoryName
+      if (categoryName && !this.categoryTags.includes(categoryName)) {
+        this.categoryTags.push(categoryName)
+      }
       this.doSearch()
     },
     searchByMaker(makerName) {
@@ -306,6 +358,16 @@ export default {
       this.actressName = actressName
       this.doSearch()
     },
+    addCategoryTag() {
+      const tag = this.categoryInput.trim()
+      if (tag && !this.categoryTags.includes(tag)) {
+        this.categoryTags.push(tag)
+      }
+      this.categoryInput = ''
+    },
+    removeCategoryTag(idx) {
+      this.categoryTags.splice(idx, 1)
+    },
     async doSearch() {
       this.loading = true
       this.searched = true
@@ -321,7 +383,7 @@ export default {
         if (this.seriesName) params.series_name = this.seriesName.trim()
         if (this.actressName) params.actress_name = this.actressName.trim()
         if (this.year) params.year = this.year
-        if (this.categoryName) params.category_name = this.categoryName.trim()
+        if (this.categoryTags.length) params.category_name = this.categoryTags.join(' ')
         if (this.sortConditions.length > 0) {
           const parts = []
           for (const cond of this.sortConditions) {
@@ -365,7 +427,7 @@ export default {
         if (this.seriesName) params.series_name = this.seriesName.trim()
         if (this.actressName) params.actress_name = this.actressName.trim()
         if (this.year) params.year = this.year
-        if (this.categoryName) params.category_name = this.categoryName.trim()
+        if (this.categoryTags.length) params.category_name = this.categoryTags.join(' ')
         if (this.sortConditions.length > 0) {
           const parts = []
           for (const cond of this.sortConditions) {
@@ -402,7 +464,6 @@ export default {
       this.goPage(p)
     },
     onSortChange(idx) {
-      // 选择非空值时，如果已经是最后一个，添加新行
       if (this.sortConditions[idx].value && idx === this.sortConditions.length - 1) {
         this.sortConditions.push({ value: '' })
       }
@@ -517,7 +578,7 @@ export default {
 
 .search-section {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
   gap: 10px;
   max-width: 1600px;
   margin: 12px auto 0;
@@ -526,11 +587,39 @@ export default {
 
 .search-row {
   display: flex;
-  flex: 1;
   flex-wrap: wrap;
   gap: 10px;
   align-items: stretch;
   min-width: 0;
+}
+
+.search-row-main {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.search-row-main .search-box-wrapper {
+  flex: 1 0 calc(50% - 5px);
+  min-width: calc(50% - 5px);
+}
+
+.search-row-more {
+  flex-wrap: wrap;
+}
+
+.search-row-more .search-box-wrapper {
+  flex: 1;
+  min-width: calc(50% - 5px);
+}
+
+.search-row-more .maker-half {
+  flex: 1;
+  min-width: calc(50% - 5px);
+}
+
+.search-row-more .full-width {
+  flex: 1 1 100%;
+  min-width: 100%;
 }
 
 .search-box-wrapper {
@@ -539,28 +628,55 @@ export default {
   min-width: 0;
 }
 
-.year-input {
-  width: 100%;
-  height: 44px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  font-size: 15px;
-  outline: none;
-  box-sizing: border-box;
-  -moz-appearance: textfield;
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+.more-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.more-filter-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 折叠展开动画 */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+.slide-enter-to,
+.slide-leave-from {
+  opacity: 1;
+  max-height: 200px;
+}
+
+.year-input {
+  -moz-appearance: textfield;
+}
 .year-input::-webkit-outer-spin-button,
 .year-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
-}
-
-.year-input:focus {
-  border-color: var(--accent);
 }
 
 .search-box {
@@ -574,6 +690,53 @@ export default {
 
 .search-box:focus-within {
   border-color: var(--accent);
+}
+
+.tag-input-box {
+  flex-wrap: wrap;
+  padding: 6px 12px;
+  gap: 6px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.tag-remove {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.8;
+}
+.tag-remove:hover {
+  opacity: 1;
+}
+
+.tag-input {
+  flex: 1;
+  min-width: 80px;
+  padding: 4px 0;
 }
 
 .search-icon {
@@ -598,7 +761,7 @@ export default {
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  padding: 0 28px;
+  padding: 10px 28px;
   font-size: 15px;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -916,5 +1079,24 @@ export default {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px) {
+  .search-row-main .search-box-wrapper {
+    min-width: 100%;
+  }
+  .search-row-more .search-box-wrapper {
+    min-width: 100%;
+  }
+  .search-actions {
+    flex-wrap: wrap;
+  }
+  .more-filter-btn {
+    flex: 1;
+  }
+  .main-search-btn {
+    flex: 1;
+  }
 }
 </style>

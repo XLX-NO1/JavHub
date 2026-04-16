@@ -1,13 +1,29 @@
 from fastapi import APIRouter
 from modules.info_client import get_info_client
 from services import cache
+from database import get_translation
+from services.translation import _translate_item
 
 router = APIRouter(prefix="/api/v1/categories", tags=["categories"])
 
 @router.get("")
 async def list_categories():
     client = get_info_client()
-    return await client.list_categories()
+    categories = await client.list_categories()
+    # 为每个 category 注入翻译字段
+    if isinstance(categories, list):
+        for cat in categories:
+            cat_id = cat.get("id")
+            if cat_id:
+                trans = get_translation(f"category:{cat_id}")
+                if trans:
+                    cat_map = trans.get("category", {})
+                    for name_key in ["name_ja", "name_en", "name"]:
+                        orig = cat.get(name_key)
+                        if orig:
+                            cat[f"{name_key}_translated"] = _translate_item(orig, cat_map)
+                            break
+    return categories
 
 
 @router.get("/stats")

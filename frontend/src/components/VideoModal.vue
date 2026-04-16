@@ -40,31 +40,36 @@
 
           <!-- 基本数据 -->
           <div class="modal-meta">
-            <div v-if="video.dvd_id" class="meta-row">
+            <div class="meta-row">
               <span class="meta-label">DVD编号</span>
-              <span class="meta-value">{{ video.dvd_id }}</span>
+              <span v-if="video.dvd_id" class="meta-value">{{ video.dvd_id }}</span>
+              <span v-else class="meta-value meta-value--empty">无</span>
             </div>
-            <div v-if="video.release_date" class="meta-row">
+            <div class="meta-row">
               <span class="meta-label">发行日期</span>
-              <span class="meta-value">{{ video.release_date }}</span>
+              <span v-if="video.release_date" class="meta-value">{{ video.release_date }}</span>
+              <span v-else class="meta-value meta-value--empty">无</span>
             </div>
-            <div v-if="video.runtime_mins" class="meta-row">
+            <div class="meta-row">
               <span class="meta-label">时长</span>
-              <span class="meta-value">{{ video.runtime_mins }} 分钟</span>
+              <span v-if="video.runtime_mins" class="meta-value">{{ video.runtime_mins }} 分钟</span>
+              <span v-else class="meta-value meta-value--empty">无</span>
             </div>
-            <div v-if="video.maker" class="meta-row">
+            <div class="meta-row">
               <span class="meta-label">工作室</span>
-              <span class="meta-value clickable" @click="$emit('navigate', { type: 'maker', item: video.maker })">
+              <span v-if="video.maker" class="meta-value clickable" @click="$emit('navigate', { type: 'maker', item: video.maker })">
                 {{ displayName(video.maker) }}
               </span>
+              <span v-else class="meta-value meta-value--empty">无</span>
             </div>
-            <div v-if="video.label" class="meta-row">
+            <div class="meta-row">
               <span class="meta-label">厂牌</span>
-              <span class="meta-value">{{ displayName(video.label) }}</span>
+              <span v-if="video.label" class="meta-value">{{ displayName(video.label) }}</span>
+              <span v-else class="meta-value meta-value--empty">无</span>
             </div>
             <div class="meta-row">
               <span class="meta-label">系列</span>
-              <span v-if="video.series" class="meta-value clickable" @click="$emit('navigate', { type: 'series', item: video.series })" v-html="itemDisplayName(video.series, &quot;name&quot;, &quot;name&quot;)"></span>
+              <span v-if="video.series" class="meta-value clickable" @click="$emit('navigate', { type: 'series', item: video.series })">{{ video.series.name_ja_translated || video.series.name_ja }}</span>
               <span v-else class="meta-value meta-value--empty">无</span>
             </div>
             <div class="meta-row">
@@ -357,16 +362,13 @@ export default {
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     },
     // 通用的翻译+原文显示，item 可以是 actress/category/series
+    // 原文 = name_ja，译文 = name_ja_translated，始终固定顺序：原文 / 译文
     itemDisplayName(item, jaField = 'name_ja', enField = 'name_en') {
       if (!item) return ''
-      const lang = displayLang.value
-      const orig = lang === 'en' ? (item[enField] || item[jaField] || '') : (item[jaField] || item[enField] || '')
-      // 尝试找翻译字段
-      const jaTrans = item[`${jaField}_translated`] || ''
-      const enTrans = item[`${enField}_translated`] || ''
-      const trans = lang === 'en' ? enTrans : jaTrans
+      const orig = (item[jaField] || item[enField] || '')
+      const trans = item[`${jaField}_translated`] || ''
       if (trans && trans !== orig) {
-        return `${this.escapeHtml(trans)}<small class="orig-name">(${this.escapeHtml(orig)})</small>`
+        return `${this.escapeHtml(orig)} / ${this.escapeHtml(trans)}`
       }
       return this.escapeHtml(orig)
     },

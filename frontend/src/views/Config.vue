@@ -329,14 +329,14 @@
         </div>
       </div>
 
-      <!-- 气泡云设置 -->
+      <!-- 题材气泡设置 -->
       <div class="settings-card">
         <div class="settings-card-header">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
             <circle cx="12" cy="12" r="3"/>
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
           </svg>
-          <h2>气泡云设置</h2>
+          <h2>题材气泡设置</h2>
         </div>
 
         <!-- 颜色模式 -->
@@ -498,8 +498,9 @@
           <div class="form-group" style="flex:1">
             <label>显示语言</label>
             <div class="avatar-size-btns">
-              <button class="size-btn" :class="{ active: displayLangVal === 'ja' }" @click="displayLang.value = 'ja'">日文</button>
-              <button class="size-btn" :class="{ active: displayLangVal === 'en' }" @click="displayLang.value = 'en'">英文</button>
+              <button class="size-btn" :class="{ active: displayLangVal === 'ja' }" @click="setDisplayLang('ja')">日文</button>
+              <button class="size-btn" :class="{ active: displayLangVal === 'zh' }" @click="setDisplayLang('zh')">中文</button>
+              <button class="size-btn" :class="{ active: displayLangVal === 'en' }" @click="setDisplayLang('en')">英文</button>
             </div>
           </div>
         </div>
@@ -689,6 +690,9 @@ export default {
       this.bubbleCfg = { baseSize: 16, fillPercent: 50, spacing: 16, colorMode: 'legendary', palette: 'monet', customGradients: [], customGradientsText: '', goldLegend: true, bubbleCount: 36, rarityColors: { legendary: '#c89a30', epic: '#7040a0', rare: '#3070a8', common: '#607080' }, rarityThresholds: { legendary: 5, epic: 20, rare: 50 } }
       localStorage.removeItem('genres_bubble_cfg')
       this.$message.info('已恢复默认')
+    },
+    setDisplayLang(lang) {
+      displayLang.value = lang
     },
     switchTheme(key) {
       applyTheme(key)
