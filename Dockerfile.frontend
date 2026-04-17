@@ -1,5 +1,5 @@
 # ============================================
-# AV Downloader Frontend - Nginx Image
+# JavHub Frontend - Nginx Image
 # ============================================
 
 FROM node:20-alpine AS builder
@@ -9,8 +9,8 @@ WORKDIR /app
 # Copy package files
 COPY frontend/package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (--legacy-peer-deps 解决 vite 8.x 兼容性问题)
+RUN npm ci --legacy-peer-deps
 
 # Copy source files
 COPY frontend/ .
