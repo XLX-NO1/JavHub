@@ -92,18 +92,6 @@
                 <input v-model.number="year" placeholder="年份" @keyup.enter="doSearch" class="search-input year-input" type="number" min="1900" max="2100" />
               </div>
             </div>
-            <!-- 第四行：影片类型 -->
-            <div class="search-box-wrapper service-code-wrap">
-              <div class="service-code-btns">
-                <button
-                  v-for="sc in serviceCodeOptions"
-                  :key="sc.value"
-                  class="service-code-btn"
-                  :class="{ active: serviceCode === sc.value }"
-                  @click="serviceCode = serviceCode === sc.value ? '' : sc.value"
-                >{{ sc.label }}</button>
-              </div>
-            </div>
           </div>
         </transition>
 
@@ -116,6 +104,15 @@
             </svg>
             {{ showMoreFilters ? '收起' : '更多筛选' }}
           </button>
+          <div class="version-select-wrapper">
+            <select v-model="serviceCode" class="version-select">
+              <option value="">全部版本</option>
+              <option v-for="sc in serviceCodeOptions" :key="sc.value" :value="sc.value">{{ sc.label }}</option>
+            </select>
+            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </div>
           <button @click="doSearch" :disabled="loading" class="main-search-btn">
             <span v-if="loading" class="spinner"></span>
             <span v-else>搜索</span>
@@ -672,6 +669,41 @@ export default {
 .more-filter-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.version-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.version-select {
+  appearance: none;
+  padding: 10px 32px 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 120px;
+}
+
+.version-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.version-select:hover {
+  border-color: var(--accent);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  color: var(--text-muted);
 }
 
 /* 折叠展开动画 */
