@@ -14,27 +14,26 @@ export default defineConfig({
     }
   },
   build: {
-    // 代码分割优化
+    // 代码分割优化 - 使用函数形式兼容 Vite 8 / Rolldown
     rollupOptions: {
       output: {
-        manualChunks: {
-          // 第三方库独立打包
-          'element-plus': ['element-plus', '@element-plus/icons-vue'],
-          'video': ['vue-video-player', 'plyr', 'video.js'],
-          'vue-vendor': ['vue', 'vue-router', 'axios'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('element-plus')) {
+              return 'element-plus'
+            }
+            if (id.includes('vue-video-player') || id.includes('plyr') || id.includes('video.js')) {
+              return 'video'
+            }
+            if (id.includes('vue') || id.includes('vue-router') || id.includes('axios')) {
+              return 'vue-vendor'
+            }
+          }
         },
         // 更短的文件名哈希
         entryFileNames: 'assets/js/[name]-[hash].js',
         chunkFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
-      }
-    },
-    // 启用 gzip 压缩
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
       }
     },
     // 生成 sourcemap（生产环境可关闭）
