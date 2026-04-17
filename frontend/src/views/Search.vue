@@ -292,6 +292,7 @@ export default {
         { value: 'digital', label: '数字版' },
         { value: 'mono', label: '单体版' },
         { value: 'rental', label: '租赁版' },
+        { value: 'ebook', label: '电子书版' },
       ],
 
       // 折叠更多筛选
