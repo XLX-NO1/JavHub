@@ -92,6 +92,18 @@
                 <input v-model.number="year" placeholder="年份" @keyup.enter="doSearch" class="search-input year-input" type="number" min="1900" max="2100" />
               </div>
             </div>
+            <!-- 第四行：影片类型 -->
+            <div class="search-box-wrapper service-code-wrap">
+              <div class="service-code-btns">
+                <button
+                  v-for="sc in serviceCodeOptions"
+                  :key="sc.value"
+                  class="service-code-btn"
+                  :class="{ active: serviceCode === sc.value }"
+                  @click="serviceCode = serviceCode === sc.value ? '' : sc.value"
+                >{{ sc.label }}</button>
+              </div>
+            </div>
           </div>
         </transition>
 
@@ -275,6 +287,12 @@ export default {
       seriesName: '',
       actressName: '',
       year: null,
+      serviceCode: '',
+      serviceCodeOptions: [
+        { value: 'digital', label: '数字版' },
+        { value: 'mono', label: '单体版' },
+        { value: 'rental', label: '租赁版' },
+      ],
 
       // 折叠更多筛选
       showMoreFilters: false,
@@ -383,6 +401,7 @@ export default {
         if (this.seriesName) params.series_name = this.seriesName.trim()
         if (this.actressName) params.actress_name = this.actressName.trim()
         if (this.year) params.year = this.year
+        if (this.serviceCode) params.service_code = this.serviceCode
         if (this.categoryTags.length) params.category_name = this.categoryTags.join(' ')
         if (this.sortConditions.length > 0) {
           const parts = []
@@ -427,6 +446,7 @@ export default {
         if (this.seriesName) params.series_name = this.seriesName.trim()
         if (this.actressName) params.actress_name = this.actressName.trim()
         if (this.year) params.year = this.year
+        if (this.serviceCode) params.service_code = this.serviceCode
         if (this.categoryTags.length) params.category_name = this.categoryTags.join(' ')
         if (this.sortConditions.length > 0) {
           const parts = []
@@ -685,7 +705,37 @@ export default {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 0 16px;
+}
+
+.service-code-wrap {
+  flex: 1 1 100%;
+}
+
+.service-code-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.service-code-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.service-code-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.service-code-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 600;
 }
 
 .search-box:focus-within {

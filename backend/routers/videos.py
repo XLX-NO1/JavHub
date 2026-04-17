@@ -25,8 +25,10 @@ async def search_videos(
     category_id: Optional[int] = Query(None),
     category_name: Optional[str] = Query(None),
     year: Optional[int] = Query(None, description="发行年份"),
+    service_code: Optional[str] = Query(None, description="影片类型：digital/mono/rental/ebook"),
     sort_by: Optional[str] = Query(None, description="排序字段，如 release_date"),
     sort_order: Optional[str] = Query(None, description="asc 或 desc"),
+    random: Optional[str] = Query(None, description="随机排序"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> Dict[str, Any]:
@@ -36,8 +38,9 @@ async def search_videos(
         series_id=series_id, series_name=series_name,
         actress_id=actress_id, actress_name=actress_name,
         category_id=category_id, category_name=category_name,
-        year=year,
+        year=year, service_code=service_code,
         sort_by=sort_by, sort_order=sort_order,
+        random=random,
         page=page, page_size=page_size
     )
     if result.get("data"):

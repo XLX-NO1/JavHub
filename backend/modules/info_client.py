@@ -94,18 +94,32 @@ class InfoClient:
         category_id: int | None = None,
         category_name: str | None = None,
         year: int | None = None,
+        service_code: str | None = None,
         sort_by: str | None = None,
         sort_order: str | None = None,
+        random: str | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> dict[str, Any]:
         """搜索视频（结果缓存10分钟，有结果才缓存）"""
-        params = {"q": q, "maker_id": maker_id, "maker_name": maker_name,
+        # 多tag支持：空格分隔的 category_name 拆成重复参数实现 AND 过滤
+        cat_names: str | list[str] | None = None
+        if category_name:
+            tags = category_name.split()
+            cat_names = tags if len(tags) > 1 else tags[0]
+        params: dict[str, Any] = {"q": q, "maker_id": maker_id, "maker_name": maker_name,
                   "series_id": series_id, "series_name": series_name, "actress_id": actress_id,
-                  "actress_name": actress_name, "category_id": category_id, "category_name": category_name,
-                  "year": year,
+                  "actress_name": actress_name, "category_id": category_id, "category_name": cat_names,
+                  "year": year, "service_code": service_code,
                   "page": page, "page_size": page_size}
-        if sort_by:
+        if random:
+            params["random"] = random
+            # 随机查询跳过缓存，每次直接请求 JavInfoApi 获取新的随机顺序
+            result = await self._get("/api/v1/videos/search", {k: v for k, v in params.items() if v is not None})
+            if "data" in result and isinstance(result["data"], list):
+                result["data"] = [_transform_video_item(item) for item in result["data"]]
+            return result
+        elif sort_by:
             # JavInfoApi expects "field:dir" format; if already contains ":" (from frontend format), pass as-is
             params["sort_by"] = sort_by if ':' in sort_by else f"{sort_by}:{sort_order or 'asc'}"
         # content_id 映射到 JavInfoApi 的 dvd_id 字段（JavInfoApi 的 dvd_id = 小写 content_id）
