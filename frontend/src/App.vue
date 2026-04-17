@@ -62,8 +62,8 @@
 </template>
 
 <script>
-import { h, ref, defineComponent } from 'vue'
-import { useRoute } from 'vue-router'
+import { h, ref, defineComponent, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 // Icon components (inline SVG)
 const IconHome = defineComponent({ render: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [h('path', { d: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' }), h('polyline', { points: '9 22 9 12 15 12 15 22' })]) })
@@ -81,6 +81,57 @@ export default {
   setup() {
     const sidebarCollapsed = ref(false)
     const route = useRoute()
+    const router = useRouter()
+
+    // ==============================================
+    // 全局快捷键
+    // Ctrl/Cmd + K: 跳转搜索页并聚焦搜索框
+    // / : 空闲时跳转搜索页
+    // Esc: 关闭弹窗
+    // ==============================================
+    let searchInputRef = null
+
+    const focusSearch = () => {
+      router.push('/search')
+      setTimeout(() => {
+        const input = document.querySelector('.search-input, .code-search input, input[placeholder="番号"]')
+        if (input) input.focus()
+      }, 100)
+    }
+
+    const handleKeydown = (e) => {
+      // Ctrl/Cmd + K: 聚焦搜索
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        focusSearch()
+        return
+      }
+
+      // / : 空闲时跳转搜索 (不在 input/textarea 中)
+      if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+        e.preventDefault()
+        focusSearch()
+        return
+      }
+
+      // Esc: 关闭弹窗
+      if (e.key === 'Escape') {
+        const modal = document.querySelector('.el-dialog, .v-modal, [class*="modal"]')
+        if (modal) {
+          const closeBtn = modal.querySelector('.el-dialog__close, .close, [aria-label="close"]')
+          if (closeBtn) closeBtn.click()
+        }
+        return
+      }
+    }
+
+    onMounted(() => {
+      document.addEventListener('keydown', handleKeydown)
+    })
+
+    onUnmounted(() => {
+      document.removeEventListener('keydown', handleKeydown)
+    })
 
     const navItems = [
       { path: '/genres', label: '个性推荐', icon: IconGenres },

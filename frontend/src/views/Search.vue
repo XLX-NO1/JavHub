@@ -263,6 +263,7 @@ import api from '../api'
 import VideoModal from '../components/VideoModal.vue'
 import { jacketHdUrl } from '../utils/imageUrl.js'
 import { useRoute } from 'vue-router'
+import { debounce } from 'lodash-es'
 
 export default {
   name: 'Search',
@@ -335,6 +336,9 @@ export default {
     }
   },
   methods: {
+    // 防抖搜索 (400ms)
+    debouncedSearch: debounce(function() { this.doSearch() }, 400),
+    
     async loadFilters() {
       // categories now use category_name text input
     },

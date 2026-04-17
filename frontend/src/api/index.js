@@ -1,8 +1,87 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '/api'
+  baseURL: '/api',
+  timeout: 30000
 })
+
+// ==============================================
+// API 重试拦截器
+// 网络错误自动重试，最多 3 次，指数退避
+// ==============================================
+const MAX_RETRIES = 3
+const RETRY_DELAY_BASE = 1000 // 基础延迟 1s
+
+function isNetworkError(error) {
+  return !error.response && (error.code === 'ECONNABORTED' || error.message.includes('Network') || !error.response)
+}
+
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    const config = error.config
+    
+    // 如果没有 config 或已经重试过，抛出错误
+    if (!config || config.__retryCount >= MAX_RETRIES) {
+      return Promise.reject(error)
+    }
+    
+    // 只有网络错误才重试
+    if (!isNetworkError(error)) {
+      return Promise.reject(error)
+    }
+    
+    // 标记重试次数
+    config.__retryCount = (config.__retryCount || 0) + 1
+    
+    // 指数退避延迟
+    const delay = RETRY_DELAY_BASE * Math.pow(2, config.__retryCount - 1)
+    
+    console.log(`[API] 请求失败，${delay}ms 后重试 (${config.__retryCount}/${MAX_RETRIES}): ${config.url}`)
+    
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(api(config))
+      }, delay)
+    })
+  }
+)
+
+// ==============================================
+// 请求去重
+// 防止同一请求在pending时重复发起
+// ==============================================
+const pendingRequests = new Map()
+
+api.interceptors.request.use(config => {
+  const key = `${config.method}:${config.url}:${JSON.stringify(config.params || {})}`
+  
+  if (pendingRequests.has(key)) {
+    const cancel = pendingRequests.get(key)
+    cancel('请求已取消')
+    pendingRequests.delete(key)
+  }
+  
+  config.cancelToken = new axios.CancelToken(cancel => {
+    pendingRequests.set(key, cancel)
+  })
+  
+  return config
+})
+
+api.interceptors.response.use(
+  response => {
+    const key = `${response.config.method}:${response.config.url}:${JSON.stringify(response.config.params || {})}`
+    pendingRequests.delete(key)
+    return response
+  },
+  error => {
+    if (axios.isCancel(error)) {
+      return Promise.reject(error)
+    }
+    return Promise.reject(error)
+  }
+)
 
 // ==============================================
 // 全局缓存：题材统计数据（启动时拉取，所有页面共享）
@@ -33,13 +112,18 @@ async function getCategoryStats(forceRefresh = false) {
       }
     } catch {}
   }
-  const resp = await api.get('/v1/categories/stats')
-  const data = Array.isArray(resp.data) ? resp.data : (resp.data || [])
-  _cachedStats = data
   try {
-    localStorage.setItem(STATS_CACHE_KEY, JSON.stringify({ data, ts: Date.now() }))
-  } catch {}
-  return data
+    const resp = await api.get('/v1/categories/stats')
+    const data = Array.isArray(resp.data) ? resp.data : (resp.data || [])
+    _cachedStats = data
+    try {
+      localStorage.setItem(STATS_CACHE_KEY, JSON.stringify({ data, ts: Date.now() }))
+    } catch {}
+    return data
+  } catch (e) {
+    console.error('Failed to fetch category stats:', e)
+    return []
+  }
 }
 
 export default {
